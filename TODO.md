@@ -32,9 +32,11 @@ ported here so the engine becomes self-contained.
       from web-app fix #65. Ported in `plspm.unidimensionality.Unidimensionality`:
       when an LV's indicator block contains NaN, rows are dropped pairwise and a
       per-block correction is applied. Upstream returned NaN for the whole block.
-- [ ] **Multi-Group Analysis** (Henseler permutation) — currently in
-      `functions/compute/mga.py`. Should land as a top-level `plspm.mga`
-      submodule.
+- [x] **Multi-Group Analysis** (Henseler permutation) ported as `plspm.mga`
+      submodule with classes `MGA` and `GroupSpec`. Supports categorical
+      (`values=[...]`) and numeric range (`range=(lo, hi)`) group definitions,
+      2+ groups with all pairwise comparisons, two-sided permutation p-values
+      with Phipson-Smyth (2010) add-one smoothing.
 - [x] **Mean replacement** option for missing values (web-app fix #66).
       Ported as `Plspm(..., missing_strategy="mean")`. Default `"casewise"`
       preserves upstream behavior. Mean strategy fills NaN in every indicator
