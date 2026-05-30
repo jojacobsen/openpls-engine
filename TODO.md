@@ -15,12 +15,12 @@ The OpenPLS web-app repo has already accumulated several extensions on top of
 `plspm`. They live in `functions/compute/` of the web-app repo and need to be
 ported here so the engine becomes self-contained.
 
-- [ ] **SRMR + d_ULS** (Standardized Root Mean Square Residual,
-      unweighted least-squares discrepancy). Currently computed in
-      `functions/compute/engine.py::_compute_model_fit`.
-- [ ] **HTMT** (Heterotrait-Monotrait ratio of correlations). Existing
-      implementation in the web-app already passes against SmartPLS for the
-      validated test cases.
+- [x] **SRMR + d_ULS** (Standardized Root Mean Square Residual,
+      unweighted least-squares discrepancy). Ported in `plspm.fit.ModelFit`
+      (commit `d0c762c`).
+- [x] **HTMT** (Heterotrait-Monotrait ratio of correlations). Ported in
+      `plspm.htmt.HTMT` (commit `e5ab424`). SmartPLS cross-validation
+      pending reference values from Johannes.
 - [ ] **Adjusted R²**, **BIC**, **Q²** (blindfolding). All present in the web
       app, need to ship as first-class engine outputs.
 - [ ] **Cronbach α + Dijkstra-Henseler ρ** with the endogenous-LV fallback
