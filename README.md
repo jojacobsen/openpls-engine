@@ -19,10 +19,9 @@ The engine also powers [OpenPLS](https://openpls.app) (the hosted web
 application) and the CLI / Docker self-host distribution planned for the next
 phase of the roadmap.
 
-> **Status: pre-release (`0.7.0a1`).** All planned ports from the OpenPLS web
-> app are in. Numerical alignment with reference implementations and PyPI
-> publication are tracked in [TODO.md](TODO.md). See
-> [CHANGELOG.md](CHANGELOG.md) for the version history.
+> **Status: pre-release.** All planned ports from the OpenPLS web app are in.
+> Numerical alignment with reference implementations is tracked in
+> [TODO.md](TODO.md). See [CHANGELOG.md](CHANGELOG.md) for the version history.
 
 ## Why fork
 
@@ -32,23 +31,28 @@ phase of the roadmap.
   long-running bootstrap with BCa confidence intervals.
 * The OpenPLS hosted product depends on a single source of truth for the
   algorithm; a maintained, versioned package makes that practical.
-* The intention is to release `openpls-engine` on PyPI once the API
-  stabilizes (see TODO).
 
 ## Installation
 
-The package is not on PyPI yet. To use it from source:
+`openpls-engine` is published on PyPI. The current line is a pre-release, so
+opt in explicitly:
+
+```sh
+pip install --pre openpls-engine
+```
+
+Or pin a specific version:
+
+```sh
+pip install openpls-engine==0.7.0a2
+```
+
+To work from source instead:
 
 ```sh
 git clone https://github.com/jojacobsen/openpls-engine.git
 cd openpls-engine
 python3 -m pip install -e .
-```
-
-Once published, installation will be:
-
-```sh
-pip install openpls-engine
 ```
 
 ## Development
