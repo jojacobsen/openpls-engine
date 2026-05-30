@@ -67,14 +67,13 @@ These need root-cause analysis and matching established conventions before a
 The features below are not in `plspm` 0.5.7 today. They are required to call
 OpenPLS Engine feature-complete with mainstream PLS-SEM software.
 
-- [x] **Quasi-Newton inner weighting scheme**, an alternative to
-      centroid, factorial, and path. Exposed as `Scheme.NEWTON`: for each
-      LV, jointly fits inner weights over all neighbors (predecessors and
-      successors together) via BFGS optimization of a least-squares
-      objective, in contrast to PATH which mixes OLS coefficients for
-      predecessors with correlations for successors. The originally
-      planned Lohmöller PCA scheme was deprioritized in favour of this
-      genuinely second-order alternative.
+- [x] **Two new inner weighting schemes** beyond centroid, factorial, and
+      path: `Scheme.NEWTON` (quasi-Newton/BFGS joint optimization over each
+      LV's full neighborhood, in contrast to PATH which mixes OLS for
+      predecessors with correlations for successors) and `Scheme.PCA`
+      (Lohmöller's classical scheme, §2.4.2: first principal direction of
+      the neighbor-score matrix). Five schemes are now available; the UI
+      can let the user pick based on methodological preference.
 - [x] **PLSpredict / Q²-Predict**, out-of-sample predictive power.
       Ported as `plspm.predict.PLSPredict`, exposed as `Plspm.predict()`.
       k-fold cross-validation; per-indicator RMSE/MAE for PLS and a linear

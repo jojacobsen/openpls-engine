@@ -12,6 +12,11 @@ package and publishes it to PyPI via OIDC trusted publishing.
 ## [Unreleased]
 
 ### Added
+- `Scheme.PCA`: Lohmöller's PCA inner-weighting scheme (Lohmöller 1989,
+  §2.4.2). For each LV, the inner weights are the components of the first
+  principal direction of its neighbor-score matrix, sign-flipped to
+  correlate positively with the LV. Treats neighbor weights as a joint
+  multivariate direction rather than as pairwise quantities.
 - `Scheme.NEWTON`: quasi-Newton (BFGS) inner-weighting scheme. For each
   latent variable, jointly fits inner weights over all neighbors
   (predecessors and successors together) via BFGS minimization of a
