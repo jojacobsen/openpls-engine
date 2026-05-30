@@ -50,7 +50,7 @@ pip install --pre openpls-engine
 Or pin a specific version:
 
 ```sh
-pip install openpls-engine==0.7.0a2
+pip install openpls-engine==0.7.0a3
 ```
 
 To work from source instead:

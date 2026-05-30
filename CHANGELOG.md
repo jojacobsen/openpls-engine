@@ -11,6 +11,14 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+## [0.7.0a3] - 2026-05-30
+
+Second feature release. Ships four advanced PLS-SEM analyses (IPMA,
+PLSpredict, two-stage moderation, FIMIX-PLS) and two additional inner-
+weighting schemes (Newton/BFGS and Lohmöller's PCA), filling the gap
+between the original `plspm-python` API and mainstream commercial PLS-SEM
+tools.
+
 ### Added
 - `Scheme.PCA`: Lohmöller's PCA inner-weighting scheme (Lohmöller 1989,
   §2.4.2). For each LV, the inner weights are the components of the first
@@ -92,7 +100,8 @@ Initial OpenPLS rebrand of the `plspm-python` 0.5.7 baseline.
 - Forked `plspm-python` 0.5.7 with attribution preserved.
 - `pyproject.toml`, ruff config, GitHub Actions CI matrix (Py 3.10 to 3.13).
 
-[Unreleased]: https://github.com/jojacobsen/openpls-engine/compare/v0.7.0a2...HEAD
+[Unreleased]: https://github.com/jojacobsen/openpls-engine/compare/v0.7.0a3...HEAD
+[0.7.0a3]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.7.0a3
 [0.7.0a2]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.7.0a2
 [0.7.0a1]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.7.0a1
 [0.6.0a1]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.6.0a1
