@@ -81,8 +81,11 @@ OpenPLS Engine feature-complete with mainstream PLS-SEM software.
       observed or supplied indicator scale.
 - [ ] **FIMIX-PLS** (Finite Mixture Segmentation), latent class
       segmentation for unobserved heterogeneity.
-- [ ] **Moderation / interaction terms**, two-stage and product-indicator
-      approaches.
+- [x] **Moderation / interaction terms** via the two-stage approach
+      (Henseler & Chin 2010). Ported as `plspm.moderation.Moderation`:
+      fits a base model, takes standardized LV scores for predictor and
+      moderator, multiplies them, and refits with the product as a
+      single-indicator construct pointing at the target.
 
 ## Phase D, Packaging + distribution
 

@@ -17,6 +17,11 @@ package and publishes it to PyPI via OIDC trusted publishing.
   effect) and performance (mean of 0-100-rescaled LV score), plus an
   indicator-level breakdown with rescaled-mean performance and
   normalized weights. Exposed as `Plspm.ipma(target)`.
+- `plspm.moderation.Moderation`: two-stage moderation
+  (Henseler & Chin 2010). Fits a base model, multiplies the standardized
+  LV scores for predictor and moderator into a product column, and
+  refits with that product as a single-indicator construct pointing at
+  the target. Exposes `base()`, `refit()`, and `interaction_effect()`.
 - `plspm.predict.PLSPredict`: PLSpredict via k-fold cross-validation.
   Per-indicator RMSE/MAE for PLS and a linear-regression benchmark,
   plus Q²_predict against the indicator-average baseline (Shmueli et
