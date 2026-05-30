@@ -26,8 +26,10 @@ ported here so the engine becomes self-contained.
       Adj R² uses `1 - (1-R²)(n-1)/(n-k-1)`; BIC = `n·log(SSE/n) + (k+1)·log(n)`
       with `SSE = (1-R²)(n-1)` for standardized LV scores.
 - [ ] **Q²** (blindfolding) — pending.
-- [ ] **Cronbach α + Dijkstra-Henseler ρ** with the endogenous-LV fallback
-      from web-app fix #65.
+- [x] **Cronbach α + Dijkstra-Henseler ρ** with the listwise-deletion fallback
+      from web-app fix #65. Ported in `plspm.unidimensionality.Unidimensionality`:
+      when an LV's indicator block contains NaN, rows are dropped pairwise and a
+      per-block correction is applied. Upstream returned NaN for the whole block.
 - [ ] **Multi-Group Analysis** (Henseler permutation) — currently in
       `functions/compute/mga.py`. Should land as a top-level `plspm.mga`
       submodule.
