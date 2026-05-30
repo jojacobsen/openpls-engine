@@ -25,6 +25,7 @@ import plspm.outer_model as om
 import plspm.weights as w
 from plspm.bootstrap import Bootstrap
 from plspm.estimator import Estimator
+from plspm.fit import ModelFit
 from plspm.scheme import Scheme
 from plspm.unidimensionality import Unidimensionality
 
@@ -79,6 +80,7 @@ class Plspm:
         self.__inner_summary = pis.InnerSummary(config, self.__inner_model.r_squared(),
                                                 self.__inner_model.r_squared_adj(), self.__outer_model.model())
         self.__unidimensionality = Unidimensionality(config, filtered_data, correction)
+        self.__model_fit = ModelFit(config, final_data, scores, self.__outer_model.model())
         self.__scores = scores
         self.__bootstrap = None
         if bootstrap:
@@ -160,6 +162,15 @@ class Plspm:
             a DataFrame with the latent variables as the index, and columns for Cronbach's Alpha, Dillon-Goldstein Rho, and the eigenvalues of the first and second principal components.
         """
         return self.__unidimensionality.summary()
+
+    def model_fit(self) -> ModelFit:
+        """Gets the model-fit indices (SRMR, d_ULS).
+
+        Returns:
+            an instance of :class:`.fit.ModelFit` from which the saturated
+            SRMR, d_ULS and the indicator-residual matrix can be retrieved.
+        """
+        return self.__model_fit
 
     def bootstrap(self) -> Bootstrap:
         """Gets the results of bootstrap validation, if requested
