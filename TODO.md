@@ -25,7 +25,9 @@ ported here so the engine becomes self-contained.
       **BIC** ported in `plspm.inner_summary` (commit `<this commit>`).
       Adj R² uses `1 - (1-R²)(n-1)/(n-k-1)`; BIC = `n·log(SSE/n) + (k+1)·log(n)`
       with `SSE = (1-R²)(n-1)` for standardized LV scores.
-- [ ] **Q²** (blindfolding) — pending.
+- [x] **Q²** (Stone-Geisser, cross-validated redundancy via blindfolding).
+      Ported in `plspm.q_squared.QSquared`, exposed as `Plspm.q_squared()`.
+      ECSI baseline at D=7: EXPE 0.20, QUAL 0.47, VAL 0.38, SAT 0.51, LOY 0.33.
 - [x] **Cronbach α + Dijkstra-Henseler ρ** with the listwise-deletion fallback
       from web-app fix #65. Ported in `plspm.unidimensionality.Unidimensionality`:
       when an LV's indicator block contains NaN, rows are dropped pairwise and a

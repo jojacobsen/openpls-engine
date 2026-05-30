@@ -27,6 +27,7 @@ from plspm.bootstrap import Bootstrap
 from plspm.estimator import Estimator
 from plspm.fit import ModelFit
 from plspm.htmt import HTMT
+from plspm.q_squared import QSquared
 from plspm.scheme import Scheme
 from plspm.unidimensionality import Unidimensionality
 
@@ -85,6 +86,10 @@ class Plspm:
         self.__model_fit = ModelFit(config, final_data, scores, self.__outer_model.model())
         self.__htmt = HTMT(config, final_data)
         self.__scores = scores
+        self.__data = filtered_data
+        self.__config = config
+        self.__scheme = scheme
+        self.__q_squared: QSquared | None = None
         self.__bootstrap = None
         if bootstrap:
             if (filtered_data.shape[0] < 10):
@@ -183,6 +188,23 @@ class Plspm:
             SRMR, d_ULS and the indicator-residual matrix can be retrieved.
         """
         return self.__model_fit
+
+    def q_squared(self, omission_distance: int = 7) -> pd.DataFrame:
+        """Gets Stone-Geisser Q² (cross-validated redundancy) per endogenous LV.
+
+        Computed lazily via blindfolding with the given omission distance D
+        (default 7). Q² > 0 indicates predictive relevance.
+
+        Args:
+            omission_distance: blindfolding parameter D. Each round omits every
+                D-th row of the target indicators. Must be >= 2.
+
+        Returns:
+            a DataFrame indexed by endogenous LV with a single `q_squared` column.
+        """
+        if self.__q_squared is None or self.__q_squared.omission_distance != omission_distance:
+            self.__q_squared = QSquared(self.__config, self.__data, self.__scheme, omission_distance)
+        return self.__q_squared.values()
 
     def bootstrap(self) -> Bootstrap:
         """Gets the results of bootstrap validation, if requested
