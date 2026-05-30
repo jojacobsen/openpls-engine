@@ -79,7 +79,8 @@ class Plspm:
         self.__inner_model = im.InnerModel(config.path(), scores)
         self.__outer_model = om.OuterModel(final_data, scores, weights, config.odm(config.path()), self.__inner_model.r_squared())
         self.__inner_summary = pis.InnerSummary(config, self.__inner_model.r_squared(),
-                                                self.__inner_model.r_squared_adj(), self.__outer_model.model())
+                                                self.__inner_model.r_squared_adj(), self.__outer_model.model(),
+                                                n_obs=filtered_data.shape[0])
         self.__unidimensionality = Unidimensionality(config, filtered_data, correction)
         self.__model_fit = ModelFit(config, final_data, scores, self.__outer_model.model())
         self.__htmt = HTMT(config, final_data)

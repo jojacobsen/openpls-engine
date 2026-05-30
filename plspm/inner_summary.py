@@ -27,7 +27,8 @@ from plspm.mode import Mode
 class InnerSummary:
     """Internal class that computes a summary of the inner model.  Use the methods :meth:`~plspm.Plspm.inner_summary` and :meth:`~plspm.Plspm.goodness_of_fit` defined on :class:`~.plspm.Plspm` to retrieve the inner model characteristics."""
 
-    def __init__(self, config: Config, r_squared: pd.Series, r_squared_adj: pd.Series, outer_model: pd.DataFrame):
+    def __init__(self, config: Config, r_squared: pd.Series, r_squared_adj: pd.Series, outer_model: pd.DataFrame,
+                 n_obs: int | None = None):
         path = config.path()
         lv_type = path.sum(axis=1).astype(bool)
         lv_type.name = "type"
@@ -35,6 +36,7 @@ class InnerSummary:
         block_communality = pd.Series(np.nan, index=path.index, name="block_communality")
         mean_redundancy = pd.Series(np.nan, index=path.index, name="mean_redundancy")
         ave = pd.Series(np.nan, index=path.index, name="ave")
+        bic = pd.Series(np.nan, index=path.index, name="bic")
         communality_aux = []
         num_mvs_in_lv = []
         for lv in list(config.path()):
@@ -48,8 +50,16 @@ class InnerSummary:
             if len(config.mvs(lv)) > 1:
                 num_mvs_in_lv.append(len(config.mvs(lv)))
                 communality_aux.append(block_communality.loc[lv])
-        self.__summary = pd.concat([lv_type_text, r_squared, r_squared_adj, block_communality, mean_redundancy, ave], axis=1,
-                                   sort=True)
+            # BIC for the OLS regression of the standardized LV scores on its
+            # k predictors. SSE = (1 - R²) · (n − 1) since variance(y) = 1.
+            if n_obs is not None:
+                k = int(path.loc[lv].sum())
+                r2 = float(r_squared.loc[lv]) if lv in r_squared.index else 0.0
+                if k > 0 and n_obs > k + 1:
+                    sse = max((1.0 - r2) * (n_obs - 1), 1e-12)
+                    bic.loc[lv] = n_obs * np.log(sse / n_obs) + (k + 1) * np.log(n_obs)
+        self.__summary = pd.concat([lv_type_text, r_squared, r_squared_adj, block_communality, mean_redundancy, ave, bic],
+                                   axis=1, sort=True)
         if sum(num_mvs_in_lv) > 0:
             mean_communality = sum(x * y for x, y in zip(communality_aux, num_mvs_in_lv)) / sum(num_mvs_in_lv)
             r_squared_aux = r_squared * lv_type

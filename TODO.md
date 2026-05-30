@@ -21,8 +21,11 @@ ported here so the engine becomes self-contained.
 - [x] **HTMT** (Heterotrait-Monotrait ratio of correlations). Ported in
       `plspm.htmt.HTMT` (commit `e5ab424`). SmartPLS cross-validation
       pending reference values from Johannes.
-- [ ] **Adjusted R²**, **BIC**, **Q²** (blindfolding). All present in the web
-      app, need to ship as first-class engine outputs.
+- [x] **Adjusted R²** (already exposed by `InnerModel.r_squared_adj`) and
+      **BIC** ported in `plspm.inner_summary` (commit `<this commit>`).
+      Adj R² uses `1 - (1-R²)(n-1)/(n-k-1)`; BIC = `n·log(SSE/n) + (k+1)·log(n)`
+      with `SSE = (1-R²)(n-1)` for standardized LV scores.
+- [ ] **Q²** (blindfolding) — pending.
 - [ ] **Cronbach α + Dijkstra-Henseler ρ** with the endogenous-LV fallback
       from web-app fix #65.
 - [ ] **Multi-Group Analysis** (Henseler permutation) — currently in
