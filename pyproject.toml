@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openpls-engine"
+version = "0.6.0a1"
+description = "PLS-SEM compute engine — a maintained fork of plspm-python with extended metrics (SRMR, d_ULS, HTMT, Q², MGA) powering OpenPLS."
+readme = "README.md"
+license = { text = "GPL-3.0-or-later" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Johannes Jacob", email = "johannespjacob@gmail.com" },
+]
+keywords = ["pls-sem", "structural-equation-modeling", "statistics", "pls", "sem"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Intended Audience :: Science/Research",
+]
+dependencies = [
+    "pandas>=1.5",
+    "numpy>=1.23",
+    "scipy>=1.10",
+    "statsmodels>=0.14",
+    "scikit-learn>=1.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/jojacobsen/openpls-engine"
+Issues = "https://github.com/jojacobsen/openpls-engine/issues"
+"OpenPLS web app" = "https://openpls.app"
+"Upstream (plspm-python)" = "https://github.com/googlecloudplatform/plspm-python"
+
+[tool.setuptools.packages.find]
+include = ["plspm*"]
+exclude = ["tests*", "docs*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+# Upstream code has long-standing style we don't churn now.
+ignore = [
+    "E501",  # line too long
+    "E712",  # == True / == False
+    "E722",  # bare except
+    "E731",  # lambda assignment
+    "E741",  # ambiguous variable names (l, I)
+    "B007",  # unused loop control variable
+    "B008",  # function call in default argument
+    "B023",  # function uses loop variable
+    "B904",  # raise without from inside except
+    "B905",  # zip without explicit strict
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402", "F401"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]

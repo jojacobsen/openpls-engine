@@ -38,6 +38,21 @@ cd openpls-engine
 python3 -m pip install -e .
 ```
 
+## Development
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+pip install -e .
+
+pytest          # run the test suite
+ruff check .    # lint
+```
+
+CI runs lint + tests on Python 3.10 – 3.13 against every push and pull request
+against `main`.
+
 ## Usage
 
 The public API mirrors upstream `plspm` 0.5.7. The
