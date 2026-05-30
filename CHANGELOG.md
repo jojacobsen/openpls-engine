@@ -11,6 +11,16 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+## [0.7.0a4] - 2026-05-30
+
+Metadata-only patch. Adds a `Documentation` link to PyPI's project sidebar
+pointing at the new docs site at https://openpls.app/engine/. No code changes.
+
+### Changed
+- `pyproject.toml`: add `Documentation = "https://openpls.app/engine/"` to
+  `[project.urls]` so the PyPI project page surfaces the docs alongside
+  Homepage, Issues and the OpenPLS web app.
+
 ## [0.7.0a3] - 2026-05-30
 
 Second feature release. Ships four advanced PLS-SEM analyses (IPMA,
