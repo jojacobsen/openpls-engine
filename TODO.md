@@ -42,9 +42,11 @@ ported here so the engine becomes self-contained.
       preserves upstream behavior. Mean strategy fills NaN in every indicator
       column with the column mean before estimation — matches SmartPLS 4's
       "Mean replacement" data setting.
-- [ ] **Bootstrap multi-core helper** — upstream already has
-      `bootstrap.py`; OpenPLS adds a long-running, resumable variant for
-      Cloud-Run-style workloads.
+- [x] **Long-running bootstrap helper** — upstream `bootstrap.py` favours
+      multiprocessing for short runs. OpenPLS adds `plspm.long_bootstrap.LongBootstrap`,
+      a serial variant with progress callback, sign-flipping, BCa percentile CIs,
+      normal-approximation p-values, and a configurable success-rate floor.
+      Suited for Cloud-Run-style workloads that stream progress to Firestore.
 
 ## Phase B — Numerical alignment with SmartPLS / R `plspm`
 
