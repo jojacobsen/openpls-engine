@@ -59,7 +59,8 @@ class Plspm:
             missing_strategy: How to handle NaN in indicator columns. ``"casewise"``
                 (default, matches upstream) drops rows containing any NaN in the
                 model's indicators. ``"mean"`` replaces each NaN with the column
-                mean of the corresponding indicator (SmartPLS 4 "Mean replacement").
+                mean of the corresponding indicator (matches the "Mean replacement"
+                option in commercial PLS-SEM software).
 
         Raises:
             Exception: if the algorithm cannot converge, or if the requested configuration could not be calculated

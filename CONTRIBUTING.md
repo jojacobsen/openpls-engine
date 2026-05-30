@@ -1,28 +1,46 @@
-# How to Contribute
+# Contributing to OpenPLS Engine
 
-We'd love to accept your patches and contributions to this project. There are
-just a few small guidelines you need to follow.
+Thanks for your interest in contributing. This project is GPL-3.0-or-later,
+so every contribution stays under those terms.
 
-## Contributor License Agreement
+## Workflow
 
-Contributions to this project must be accompanied by a Contributor License
-Agreement. You (or your employer) retain the copyright to your contribution;
-this simply gives us permission to use and redistribute your contributions as
-part of the project. Head over to <https://cla.developers.google.com/> to see
-your current agreements on file or to sign a new one.
+1. Open an issue describing the change before starting non-trivial work.
+2. Fork the repo, create a feature branch, and open a pull request against
+   `main`.
+3. Each PR should ship a single self-contained change with tests. Keep
+   commits focused; squash on merge if the history is messy.
+4. CI runs lint (ruff) and tests (pytest) on Python 3.10 through 3.13. The
+   build must be green before review.
 
-You generally only need to submit a CLA once, so if you've already submitted one
-(even if it was for a different project), you probably don't need to do it
-again.
+## Local setup
 
-## Code reviews
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+pip install -e .
 
-All submissions, including submissions by project members, require review. We
-use GitHub pull requests for this purpose. Consult
-[GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
-information on using pull requests.
+pytest          # run the test suite
+ruff check .    # lint
+```
 
-## Community Guidelines
+## Coding conventions
 
-This project follows
-[Google's Open Source Community Guidelines](https://opensource.google.com/conduct/).
+- Match the style of surrounding code; ruff config in `pyproject.toml` is
+  authoritative.
+- New numeric or statistical features ship with a regression test using one
+  of the fixture datasets under `tests/data/`.
+- Public APIs need a docstring explaining inputs, outputs, and the
+  reference (paper or book) for the algorithm.
+- Avoid breaking the upstream `plspm` 0.5.7 API. New OpenPLS features go
+  into new submodules (see `plspm/htmt.py`, `plspm/mga.py`).
+
+## Releasing
+
+Maintainer task. See [`docs/RELEASING.md`](docs/RELEASING.md) for the tag
++ publish flow.
+
+## Questions
+
+Open a GitHub issue or reach out via [openpls.app](https://openpls.app).

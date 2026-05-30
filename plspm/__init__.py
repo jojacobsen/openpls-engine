@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 #
 # Copyright (C) 2019 Google Inc.
+# Copyright (C) 2026 OpenPLS contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,4 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from importlib.metadata import PackageNotFoundError, version
+
 name = "plspm"
+
+try:
+    __version__ = version("openpls-engine")
+except PackageNotFoundError:
+    __version__ = "0.0.0+unknown"
