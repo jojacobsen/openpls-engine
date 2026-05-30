@@ -12,6 +12,12 @@ package and publishes it to PyPI via OIDC trusted publishing.
 ## [Unreleased]
 
 ### Added
+- `plspm.fimix.FIMIX`: Finite Mixture PLS (Hahn et al. 2002) for latent
+  class segmentation. EM algorithm with multiple random restarts detects
+  K subgroups sharing the measurement model but with distinct structural
+  paths. Reports per-class path coefficients, posterior memberships,
+  hard assignments, and information criteria (AIC, AIC3, AIC4, BIC,
+  CAIC, MDL5, normalized entropy EN). Exposed as `Plspm.fimix(n_classes)`.
 - `plspm.ipma.IPMA`: Importance-Performance Map Analysis. For a chosen
   target endogenous LV, returns each predecessor's importance (total
   effect) and performance (mean of 0-100-rescaled LV score), plus an

@@ -79,8 +79,12 @@ OpenPLS Engine feature-complete with mainstream PLS-SEM software.
       exposed as `Plspm.ipma(target)`. Returns LV-level and indicator-level
       importance/performance tables; performance rescaled to 0-100 from
       observed or supplied indicator scale.
-- [ ] **FIMIX-PLS** (Finite Mixture Segmentation), latent class
-      segmentation for unobserved heterogeneity.
+- [x] **FIMIX-PLS** (Finite Mixture Segmentation), latent class
+      segmentation for unobserved heterogeneity. Ported as
+      `plspm.fimix.FIMIX`, exposed as `Plspm.fimix(n_classes)`. EM with
+      multiple random restarts; reports per-class path coefficients,
+      posterior memberships, hard assignments, and model-selection
+      criteria (AIC, AIC3, AIC4, BIC, CAIC, MDL5, normalized entropy EN).
 - [x] **Moderation / interaction terms** via the two-stage approach
       (Henseler & Chin 2010). Ported as `plspm.moderation.Moderation`:
       fits a base model, takes standardized LV scores for predictor and

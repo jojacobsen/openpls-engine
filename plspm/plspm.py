@@ -25,6 +25,7 @@ import plspm.outer_model as om
 import plspm.weights as w
 from plspm.bootstrap import Bootstrap
 from plspm.estimator import Estimator
+from plspm.fimix import FIMIX
 from plspm.fit import ModelFit
 from plspm.htmt import HTMT
 from plspm.ipma import IPMA
@@ -295,6 +296,42 @@ class Plspm:
             scale_min=scale_min,
             scale_max=scale_max,
             indicator_scales=indicator_scales,
+        )
+
+    def fimix(
+        self,
+        n_classes: int,
+        max_iter: int = 500,
+        tolerance: float = 1e-6,
+        n_restarts: int = 5,
+        seed: int | None = 42,
+    ) -> FIMIX:
+        """Finite Mixture PLS for latent class segmentation.
+
+        Runs FIMIX-PLS (Hahn et al. 2002) on the fitted model's LV scores.
+        Detects ``n_classes`` subgroups sharing the measurement model but
+        with distinct structural-path coefficients.
+
+        Args:
+            n_classes: number of mixture components K (must be >= 2).
+            max_iter: maximum EM iterations per restart (default 500).
+            tolerance: convergence tolerance on the log-likelihood.
+            n_restarts: number of random EM restarts; the best is kept.
+            seed: RNG seed for restart initialization. ``None`` for
+                non-deterministic.
+
+        Returns:
+            a :class:`.fimix.FIMIX` instance. Call ``memberships()``,
+            ``class_paths()``, and ``fit_criteria()`` for the per-class
+            results and information criteria for model selection.
+        """
+        return FIMIX(
+            self,
+            n_classes=n_classes,
+            max_iter=max_iter,
+            tolerance=tolerance,
+            n_restarts=n_restarts,
+            seed=seed,
         )
 
     def bootstrap(self) -> Bootstrap:
