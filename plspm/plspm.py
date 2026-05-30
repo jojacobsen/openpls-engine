@@ -43,7 +43,8 @@ class Plspm:
 
     def __init__(self, data: pd.DataFrame, config: c.Config, scheme: Scheme = Scheme.CENTROID,
                  iterations: int = 100, tolerance: float = 0.000001, bootstrap: bool = False,
-                 bootstrap_iterations: int = 100, processes: int = 2):
+                 bootstrap_iterations: int = 100, processes: int = 2,
+                 missing_strategy: str = "casewise"):
         """Creates an instance of the path model calculator.
 
         Args:
@@ -55,6 +56,10 @@ class Plspm:
             bootstrap: Whether to perform bootstrap validation (default is not to perform validation)
             bootstrap_iterations: The number of bootstrap samples to use if bootstrap validation is enabled (default and minimum 100)
             processes: The number of processes to use while bootstrapping (bootstrap_iterations must be a multiple of processes)
+            missing_strategy: How to handle NaN in indicator columns. ``"casewise"``
+                (default, matches upstream) drops rows containing any NaN in the
+                model's indicators. ``"mean"`` replaces each NaN with the column
+                mean of the corresponding indicator (SmartPLS 4 "Mean replacement").
 
         Raises:
             Exception: if the algorithm cannot converge, or if the requested configuration could not be calculated
@@ -68,6 +73,13 @@ class Plspm:
             bootstrap_iterations = 100
         assert processes > 0
         assert bootstrap_iterations % processes == 0
+        if missing_strategy not in ("casewise", "mean"):
+            raise ValueError(
+                f"missing_strategy must be 'casewise' or 'mean', got {missing_strategy!r}"
+            )
+
+        if missing_strategy == "mean":
+            data = self.__mean_replace(data, config)
 
         estimator = Estimator(config)
         filtered_data = config.filter(data)
@@ -96,6 +108,19 @@ class Plspm:
                 raise Exception("Bootstrapping could not be performed, at least 10 observations are required.")
             self.__bootstrap = Bootstrap(config, filtered_data, self.__inner_model, self.__outer_model, calculator,
                                          bootstrap_iterations, processes)
+
+    @staticmethod
+    def __mean_replace(data: pd.DataFrame, config: c.Config) -> pd.DataFrame:
+        """Replaces NaN with the column mean for every indicator in the model."""
+        inds = [ind for lv in config.path().index for ind in config.mvs(lv) if ind in data.columns]
+        if not inds:
+            return data
+        out = data.copy()
+        # promote int columns so the mean (float) can be assigned in pandas 2.2+
+        out[inds] = out[inds].astype(float)
+        means = out[inds].mean(skipna=True)
+        out[inds] = out[inds].fillna(means)
+        return out
 
     def scores(self) -> pd.DataFrame:
         """Gets the latent variable scores

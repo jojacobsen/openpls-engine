@@ -35,7 +35,11 @@ ported here so the engine becomes self-contained.
 - [ ] **Multi-Group Analysis** (Henseler permutation) — currently in
       `functions/compute/mga.py`. Should land as a top-level `plspm.mga`
       submodule.
-- [ ] **Mean replacement** option for missing values (web-app fix #66).
+- [x] **Mean replacement** option for missing values (web-app fix #66).
+      Ported as `Plspm(..., missing_strategy="mean")`. Default `"casewise"`
+      preserves upstream behavior. Mean strategy fills NaN in every indicator
+      column with the column mean before estimation — matches SmartPLS 4's
+      "Mean replacement" data setting.
 - [ ] **Bootstrap multi-core helper** — upstream already has
       `bootstrap.py`; OpenPLS adds a long-running, resumable variant for
       Cloud-Run-style workloads.
