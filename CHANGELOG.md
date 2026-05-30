@@ -12,6 +12,13 @@ package and publishes it to PyPI via OIDC trusted publishing.
 ## [Unreleased]
 
 ### Added
+- `Scheme.NEWTON`: quasi-Newton (BFGS) inner-weighting scheme. For each
+  latent variable, jointly fits inner weights over all neighbors
+  (predecessors and successors together) via BFGS minimization of a
+  least-squares objective, in contrast to the classical PATH scheme,
+  which mixes OLS coefficients for predecessors with bare correlations
+  for successors. Initialized from the analytical OLS solution; uses
+  scipy.optimize for the second-order Hessian-secant update.
 - `plspm.fimix.FIMIX`: Finite Mixture PLS (Hahn et al. 2002) for latent
   class segmentation. EM algorithm with multiple random restarts detects
   K subgroups sharing the measurement model but with distinct structural

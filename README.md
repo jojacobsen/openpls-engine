@@ -13,7 +13,13 @@ for Partial Least Squares Structural Equation Modeling (PLS-SEM).
 Humble (Google). It keeps the original algorithm intact and adds the metrics
 and quality criteria that modern PLS-SEM reporting requires: HTMT, SRMR,
 d_ULS, adjusted R², BIC, Stone-Geisser Q², Cronbach α, Dijkstra-Henseler ρ,
-multi-group analysis, and a progress-streaming long bootstrap.
+multi-group analysis, and a progress-streaming long bootstrap. It also ships
+**advanced** analyses that go beyond what `plspm-python` covers: PLSpredict
+out-of-sample validation, IPMA (Importance-Performance Map Analysis),
+two-stage moderation, FIMIX-PLS finite-mixture segmentation, and a
+**quasi-Newton (BFGS) inner-weighting scheme** that jointly optimizes
+inner weights via second-order optimization, an alternative to the
+classical centroid, factorial, and path schemes.
 
 The engine also powers [OpenPLS](https://openpls.app) (the hosted web
 application) and the CLI / Docker self-host distribution planned for the next
