@@ -11,6 +11,13 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+### Added
+- `plspm.ipma.IPMA`: Importance-Performance Map Analysis. For a chosen
+  target endogenous LV, returns each predecessor's importance (total
+  effect) and performance (mean of 0-100-rescaled LV score), plus an
+  indicator-level breakdown with rescaled-mean performance and
+  normalized weights. Exposed as `Plspm.ipma(target)`.
+
 ## [0.7.0a2] - 2026-05-30
 
 First release published to PyPI. Identical code to `0.7.0a1`; bumped only

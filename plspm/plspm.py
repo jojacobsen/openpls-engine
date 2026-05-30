@@ -27,6 +27,7 @@ from plspm.bootstrap import Bootstrap
 from plspm.estimator import Estimator
 from plspm.fit import ModelFit
 from plspm.htmt import HTMT
+from plspm.ipma import IPMA
 from plspm.q_squared import QSquared
 from plspm.scheme import Scheme
 from plspm.unidimensionality import Unidimensionality
@@ -231,6 +232,38 @@ class Plspm:
         if self.__q_squared is None or self.__q_squared.omission_distance != omission_distance:
             self.__q_squared = QSquared(self.__config, self.__data, self.__scheme, omission_distance)
         return self.__q_squared.values()
+
+    def ipma(
+        self,
+        target: str,
+        scale_min: float | None = None,
+        scale_max: float | None = None,
+        indicator_scales: dict[str, tuple[float, float]] | None = None,
+    ) -> IPMA:
+        """Importance-Performance Map Analysis for a target endogenous LV.
+
+        Args:
+            target: name of the endogenous LV to analyze.
+            scale_min, scale_max: common scale bounds (e.g. 1 and 7 for a
+                7-point Likert). If both are None, each indicator is rescaled
+                from its observed min/max.
+            indicator_scales: optional ``{indicator: (min, max)}`` overrides.
+
+        Returns:
+            an :class:`.ipma.IPMA` instance. Call ``latent_variables()`` for
+            the LV-level table and ``indicators()`` for the indicator-level
+            breakdown.
+        """
+        return IPMA(
+            self.__config,
+            self.__data,
+            self.outer_model(),
+            self.effects(),
+            target,
+            scale_min=scale_min,
+            scale_max=scale_max,
+            indicator_scales=indicator_scales,
+        )
 
     def bootstrap(self) -> Bootstrap:
         """Gets the results of bootstrap validation, if requested

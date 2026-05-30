@@ -70,8 +70,11 @@ OpenPLS Engine feature-complete with mainstream PLS-SEM software.
 - [ ] **PCA inner weighting scheme** (Lohmöller), an alternative to
       centroid, factorial, and path.
 - [ ] **PLSpredict / Q²-Predict**, out-of-sample predictive power.
-- [ ] **IPMA** (Importance-Performance Map Analysis), a common output in
-      applied marketing and IS research.
+- [x] **IPMA** (Importance-Performance Map Analysis), a common output in
+      applied marketing and IS research. Ported as `plspm.ipma.IPMA`,
+      exposed as `Plspm.ipma(target)`. Returns LV-level and indicator-level
+      importance/performance tables; performance rescaled to 0-100 from
+      observed or supplied indicator scale.
 - [ ] **FIMIX-PLS** (Finite Mixture Segmentation), latent class
       segmentation for unobserved heterogeneity.
 - [ ] **Moderation / interaction terms**, two-stage and product-indicator
