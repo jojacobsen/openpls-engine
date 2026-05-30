@@ -69,7 +69,11 @@ OpenPLS Engine feature-complete with mainstream PLS-SEM software.
 
 - [ ] **PCA inner weighting scheme** (Lohmöller), an alternative to
       centroid, factorial, and path.
-- [ ] **PLSpredict / Q²-Predict**, out-of-sample predictive power.
+- [x] **PLSpredict / Q²-Predict**, out-of-sample predictive power.
+      Ported as `plspm.predict.PLSPredict`, exposed as `Plspm.predict()`.
+      k-fold cross-validation; per-indicator RMSE/MAE for PLS and a linear
+      regression benchmark, plus Q²_predict against the indicator-average
+      baseline. `summary()` classifies each indicator as PLS-better/worse/tie.
 - [x] **IPMA** (Importance-Performance Map Analysis), a common output in
       applied marketing and IS research. Ported as `plspm.ipma.IPMA`,
       exposed as `Plspm.ipma(target)`. Returns LV-level and indicator-level

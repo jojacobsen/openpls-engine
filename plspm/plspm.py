@@ -28,6 +28,7 @@ from plspm.estimator import Estimator
 from plspm.fit import ModelFit
 from plspm.htmt import HTMT
 from plspm.ipma import IPMA
+from plspm.predict import PLSPredict
 from plspm.q_squared import QSquared
 from plspm.scheme import Scheme
 from plspm.unidimensionality import Unidimensionality
@@ -232,6 +233,37 @@ class Plspm:
         if self.__q_squared is None or self.__q_squared.omission_distance != omission_distance:
             self.__q_squared = QSquared(self.__config, self.__data, self.__scheme, omission_distance)
         return self.__q_squared.values()
+
+    def predict(
+        self,
+        k: int = 10,
+        repeats: int = 1,
+        seed: int | None = 42,
+    ) -> PLSPredict:
+        """PLSpredict: out-of-sample predictive power via k-fold CV.
+
+        Per-indicator RMSE and MAE for both PLS and the LM benchmark, plus
+        Q²_predict (Shmueli et al. 2019).
+
+        Args:
+            k: number of folds (default 10, must be >= 2 and <= n).
+            repeats: how many times to shuffle and re-fold (default 1).
+            seed: random seed for the fold shuffle. Pass ``None`` for
+                non-deterministic.
+
+        Returns:
+            a :class:`.predict.PLSPredict` instance. Call ``metrics()`` for
+            the per-indicator error table and ``summary()`` for the PLS-vs-LM
+            verdict.
+        """
+        return PLSPredict(
+            self.__config,
+            self.__data,
+            self.__scheme,
+            k=k,
+            repeats=repeats,
+            seed=seed,
+        )
 
     def ipma(
         self,

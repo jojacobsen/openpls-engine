@@ -17,6 +17,11 @@ package and publishes it to PyPI via OIDC trusted publishing.
   effect) and performance (mean of 0-100-rescaled LV score), plus an
   indicator-level breakdown with rescaled-mean performance and
   normalized weights. Exposed as `Plspm.ipma(target)`.
+- `plspm.predict.PLSPredict`: PLSpredict via k-fold cross-validation.
+  Per-indicator RMSE/MAE for PLS and a linear-regression benchmark,
+  plus Q²_predict against the indicator-average baseline (Shmueli et
+  al. 2019). Exposed as `Plspm.predict(k=10, repeats=1, seed=42)`;
+  `summary()` returns the per-indicator PLS-vs-LM verdict.
 
 ## [0.7.0a2] - 2026-05-30
 
