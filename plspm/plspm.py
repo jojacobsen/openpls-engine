@@ -26,6 +26,7 @@ import plspm.weights as w
 from plspm.bootstrap import Bootstrap
 from plspm.estimator import Estimator
 from plspm.fit import ModelFit
+from plspm.htmt import HTMT
 from plspm.scheme import Scheme
 from plspm.unidimensionality import Unidimensionality
 
@@ -81,6 +82,7 @@ class Plspm:
                                                 self.__inner_model.r_squared_adj(), self.__outer_model.model())
         self.__unidimensionality = Unidimensionality(config, filtered_data, correction)
         self.__model_fit = ModelFit(config, final_data, scores, self.__outer_model.model())
+        self.__htmt = HTMT(config, final_data)
         self.__scores = scores
         self.__bootstrap = None
         if bootstrap:
@@ -162,6 +164,15 @@ class Plspm:
             a DataFrame with the latent variables as the index, and columns for Cronbach's Alpha, Dillon-Goldstein Rho, and the eigenvalues of the first and second principal components.
         """
         return self.__unidimensionality.summary()
+
+    def htmt(self) -> HTMT:
+        """Gets the Heterotrait-Monotrait Ratio of Correlations.
+
+        Returns:
+            an instance of :class:`.htmt.HTMT` from which the HTMT matrix
+            and a long-format pair list can be retrieved.
+        """
+        return self.__htmt
 
     def model_fit(self) -> ModelFit:
         """Gets the model-fit indices (SRMR, d_ULS).
