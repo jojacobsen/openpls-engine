@@ -15,7 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pandas as pd, math, numpy as np, collections as c
+import collections as c
+import math
+
+import numpy as np
+import pandas as pd
 
 
 def treat(data: pd.DataFrame, center: bool = True, scale: bool = True, scale_values=None) -> pd.DataFrame:
@@ -101,7 +105,7 @@ def groupby_mean(data: np.ndarray) -> np.ndarray:
     reduced = 0
     for i in range(data.shape[1]):
         index = data[0, i]
-        if not index in values:
+        if index not in values:
             values[index] = []
             reduced += 1
         values[index].append(data[1, i])
@@ -118,10 +122,10 @@ class Value:
         self.__value = val
 
     def __eq__(self, other):
-        return self.__value == other.__value 
+        return self.__value == other.__value
 
     def __ne__(self, other):
-        return self.__value != other.__value 
+        return self.__value != other.__value
 
 
 class TopoSort:

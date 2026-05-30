@@ -15,10 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pandas as pd, numpy as np, plspm.util as util
+import numpy as np
+import pandas as pd
 from sklearn.decomposition import PCA
+
+import plspm.util as util
 from plspm.config import Config
 from plspm.mode import Mode
+
 
 class Unidimensionality:
     """Internal class that computes various reliability metrics. Use the method :meth:`~.plspm.Plspm.unidimensionality` defined on :class:`~.plspm.Plspm` to retrieve the results."""

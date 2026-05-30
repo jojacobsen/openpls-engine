@@ -15,7 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pandas as pd, numpy as np, math
+import math
+
+import numpy as np
+import pandas as pd
+
 from plspm.config import Config
 from plspm.mode import Mode
 

@@ -15,11 +15,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pandas.testing as pt, pandas as pd, plspm.util as util, numpy.testing as npt, plspm.config as c, math, numpy as np
+import math
+
+import numpy as np
+import numpy.testing as npt
+import pandas as pd
+import pandas.testing as pt
+
+import plspm.config as c
+import plspm.util as util
+from plspm.mode import Mode
 from plspm.plspm import Plspm
 from plspm.scale import Scale
 from plspm.scheme import Scheme
-from plspm.mode import Mode
+
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 300)
 

@@ -15,8 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import statsmodels.api as sm, numpy as np, pandas as pd, plspm.util as util
 from enum import Enum
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+
+import plspm.util as util
 
 
 class _CentroidInnerWeightCalculator(util.Value):

@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pandas as pd, statsmodels.api as sm
+import pandas as pd
+import statsmodels.api as sm
 
 
 def _summary(dv, regression):
@@ -72,7 +73,7 @@ class InnerModel:
         self.__endogenous = list(endogenous[endogenous == True].index)
         rows = scores.shape[0]
         for dv in self.__endogenous:
-            ivs = path.loc[dv,][path.loc[dv,] == 1].index
+            ivs = path.loc[dv][path.loc[dv] == 1].index
             exogenous = sm.add_constant(scores.loc[:, ivs])
             regression = sm.OLS(scores.loc[:, dv], exogenous).fit()
             self.__path_coefficients.loc[dv, ivs] = regression.params

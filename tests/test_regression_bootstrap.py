@@ -1,7 +1,14 @@
-import pandas.testing as pt, pandas as pd, plspm.util as util, numpy.testing as npt, plspm.config as c, math
+import math
+
+import numpy.testing as npt
+import pandas as pd
+import pandas.testing as pt
+
+import plspm.config as c
+import plspm.util as util
+from plspm.mode import Mode
 from plspm.plspm import Plspm
 from plspm.scheme import Scheme
-from plspm.mode import Mode
 
 
 def satisfaction_path_matrix():

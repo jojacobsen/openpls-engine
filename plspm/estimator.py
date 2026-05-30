@@ -15,10 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import plspm.config as c, pandas as pd, numpy.testing as npt
-from plspm.weights import WeightsCalculatorFactory
+
+import pandas as pd
+
+import plspm.config as c
 from plspm.scale import Scale
-from typing import Tuple
+from plspm.weights import WeightsCalculatorFactory
 
 
 class Estimator:
@@ -26,7 +28,7 @@ class Estimator:
     def __init__(self, config: c.Config):
         self.__hoc_path_first_stage = self.hoc_path_first_stage(config)
 
-    def estimate(self, calculator: WeightsCalculatorFactory, data: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def estimate(self, calculator: WeightsCalculatorFactory, data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         # Make sure we are threadsafe
         calculator = calculator.clone()
         config = calculator.config()

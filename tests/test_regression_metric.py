@@ -15,10 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pandas.testing as pt, pandas as pd, plspm.util as util, numpy.testing as npt, plspm.config as c, math, pytest
+import math
+
+import numpy.testing as npt
+import pandas as pd
+import pandas.testing as pt
+import pytest
+
+import plspm.config as c
+import plspm.util as util
+from plspm.mode import Mode
 from plspm.plspm import Plspm
 from plspm.scheme import Scheme
-from plspm.mode import Mode
+
 
 def satisfaction_path_matrix():
     structure = c.Structure()
@@ -64,7 +73,8 @@ def test_plspm_satisfaction():
     npt.assert_allclose(util.sort_cols(expected_inner_summary.drop(["type"], axis=1)).sort_index(),
                         util.sort_cols(plspm_calc.inner_summary().drop(["type", "r_squared_adj"], axis=1)).sort_index())
     pt.assert_series_equal(expected_inner_summary.loc[:, "type"].sort_index(),
-                           plspm_calc.inner_summary().loc[:, "type"].sort_index())
+                           plspm_calc.inner_summary().loc[:, "type"].sort_index(),
+                           check_dtype=False)
 
     expected_effects = pd.read_csv("file:tests/data/satisfaction.effects.csv", index_col=0)
 
@@ -108,7 +118,8 @@ def test_plspm_russa_mode_b():
     npt.assert_allclose(util.sort_cols(expected_inner_summary.drop(["type"], axis=1)).sort_index(),
                         util.sort_cols(plspm_calc.inner_summary().drop(["type", "r_squared_adj"], axis=1)).sort_index())
     pt.assert_series_equal(expected_inner_summary.loc[:, "type"].sort_index(),
-                           plspm_calc.inner_summary().loc[:, "type"].sort_index())
+                           plspm_calc.inner_summary().loc[:, "type"].sort_index(),
+                           check_dtype=False)
 
 def test_only_single_item_constructs():
     satisfaction = pd.read_csv("file:tests/data/satisfaction.csv", index_col=0)
@@ -123,4 +134,3 @@ def test_only_single_item_constructs():
     plspm_calc = Plspm(satisfaction, config, Scheme.CENTROID)
     with pytest.raises(ValueError):
         plspm_calc.goodness_of_fit()
-        

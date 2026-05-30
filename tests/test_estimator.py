@@ -15,9 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest, pandas.testing as pt, plspm.config as c
-from plspm.mode import Mode
+import pandas.testing as pt
+import pytest
+
+import plspm.config as c
 from plspm.estimator import Estimator
+from plspm.mode import Mode
+
 
 def test_can_add_hoc_lv_paths_correctly():
     structure = c.Structure()

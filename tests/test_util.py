@@ -15,7 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pandas as pd, numpy as np, numpy.testing as npt, plspm.util as util
+import numpy as np
+import numpy.testing as npt
+import pandas as pd
+
+import plspm.util as util
 
 
 def test_impute_missing_values():

@@ -15,10 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pandas as pd, numpy as np, numpy.testing as npt, plspm.util as util, itertools as it, collections as c
-from plspm.util import TopoSort
+import itertools as it
+
+import numpy as np
+import numpy.testing as npt
+import pandas as pd
+
+import plspm.util as util
 from plspm.mode import Mode
 from plspm.scale import Scale
+from plspm.util import TopoSort
 
 
 class Structure:
@@ -208,7 +214,7 @@ class Config:
         """
         self.__mvs.pop(lv_name)
         self.__modes.pop(lv_name)
-        
+
     def add_higher_order(self, hoc_name: str, mode: Mode, lvs: list):
         """Add a higher order construct to the model.
 

@@ -15,12 +15,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import plspm.inner_summary as pis, plspm.config as c
-import pandas as pd, numpy as np, plspm.weights as w, plspm.outer_model as om, plspm.inner_model as im
-from plspm.scheme import Scheme
-from plspm.unidimensionality import Unidimensionality
+import numpy as np
+import pandas as pd
+
+import plspm.config as c
+import plspm.inner_model as im
+import plspm.inner_summary as pis
+import plspm.outer_model as om
+import plspm.weights as w
 from plspm.bootstrap import Bootstrap
 from plspm.estimator import Estimator
+from plspm.scheme import Scheme
+from plspm.unidimensionality import Unidimensionality
 
 
 class Plspm:

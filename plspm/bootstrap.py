@@ -15,11 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import plspm.config as c, pandas as pd, numpy as np, plspm.inner_model as im, plspm.outer_model as om, time
+import time
 from multiprocessing import Process, Queue
 from queue import Empty
-from plspm.weights import WeightsCalculatorFactory
+
+import numpy as np
+import pandas as pd
+
+import plspm.config as c
+import plspm.inner_model as im
+import plspm.outer_model as om
 from plspm.estimator import Estimator
+from plspm.weights import WeightsCalculatorFactory
+
 
 def _create_summary(data: pd.DataFrame, original):
     summary = pd.DataFrame(0.0, index=data.columns, columns=["original", "mean", "std.error", "perc.025", "perc.975", "t stat."])
@@ -34,7 +42,7 @@ def _create_summary(data: pd.DataFrame, original):
 
 class BootstrapProcess(Process):
     def __init__(self, queue: Queue, config: c.Config, data: pd.DataFrame, inner_model: im.InnerModel, calculator: WeightsCalculatorFactory, iterations: int):
-        super(BootstrapProcess, self).__init__()
+        super().__init__()
         self.__queue = queue
         self.__config = config
         self.__data = data

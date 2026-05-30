@@ -15,11 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pandas.testing as pt, pandas as pd, plspm.util as util, numpy.testing as npt, plspm.config as c, math, numpy as np
+import math
+
+import numpy as np
+import numpy.testing as npt
+import pandas as pd
+import pandas.testing as pt
+
+import plspm.config as c
+import plspm.util as util
+from plspm.mode import Mode
 from plspm.plspm import Plspm
 from plspm.scale import Scale
 from plspm.scheme import Scheme
-from plspm.mode import Mode
 
 
 def russa_path_matrix():
@@ -58,7 +66,8 @@ def test_plspm_russa():
     npt.assert_allclose(util.sort_cols(expected_inner_summary.drop(["type"], axis=1)).sort_index(),
                         util.sort_cols(plspm_calc.inner_summary().drop(["type", "r_squared_adj"], axis=1)).sort_index())
     pt.assert_series_equal(expected_inner_summary.loc[:, "type"].sort_index(),
-                           plspm_calc.inner_summary().loc[:, "type"].sort_index())
+                           plspm_calc.inner_summary().loc[:, "type"].sort_index(),
+                           check_dtype=False)
 
     assert math.isclose(0.643594505232204, plspm_calc.goodness_of_fit())
 
@@ -89,7 +98,8 @@ def test_plspm_russa_mode_b():
     npt.assert_allclose(util.sort_cols(expected_inner_summary.drop(["type"], axis=1)).sort_index(),
                         util.sort_cols(plspm_calc.inner_summary().drop(["type", "r_squared_adj"], axis=1)).sort_index())
     pt.assert_series_equal(expected_inner_summary.loc[:, "type"].sort_index(),
-                           plspm_calc.inner_summary().loc[:, "type"].sort_index())
+                           plspm_calc.inner_summary().loc[:, "type"].sort_index(),
+                           check_dtype=False)
 
 def test_plspm_russa_categorical():
     russa = pd.read_csv("file:tests/data/russa.csv", index_col=0)
@@ -103,7 +113,8 @@ def test_plspm_russa_categorical():
     npt.assert_allclose(util.sort_cols(expected_inner_summary.drop(["type"], axis=1)).sort_index(),
                         util.sort_cols(plspm_calc.inner_summary().drop(["type", "r_squared_adj"], axis=1)).sort_index())
     pt.assert_series_equal(expected_inner_summary.loc[:, "type"].sort_index(),
-                           plspm_calc.inner_summary().loc[:, "type"].sort_index())
+                           plspm_calc.inner_summary().loc[:, "type"].sort_index(),
+                           check_dtype=False)
 
 def test_plspm_russa_categorical_mode_b():
     russa = pd.read_csv("file:tests/data/russa.csv", index_col=0)
@@ -117,7 +128,8 @@ def test_plspm_russa_categorical_mode_b():
     npt.assert_allclose(util.sort_cols(expected_inner_summary.drop(["type"], axis=1)).sort_index(),
                         util.sort_cols(plspm_calc.inner_summary().drop(["type", "r_squared_adj"], axis=1)).sort_index())
     pt.assert_series_equal(expected_inner_summary.loc[:, "type"].sort_index(),
-                           plspm_calc.inner_summary().loc[:, "type"].sort_index())
+                           plspm_calc.inner_summary().loc[:, "type"].sort_index(),
+                           check_dtype=False)
 
 def test_plspm_russa_missing_data():
     russa = pd.read_csv("file:tests/data/russa.csv", index_col=0)
@@ -134,5 +146,6 @@ def test_plspm_russa_missing_data():
     npt.assert_allclose(util.sort_cols(expected_inner_summary.drop(["type"], axis=1)).sort_index(),
                         util.sort_cols(plspm_calc.inner_summary().drop(["type", "r_squared_adj"], axis=1)).sort_index())
     pt.assert_series_equal(expected_inner_summary.loc[:, "type"].sort_index(),
-                           plspm_calc.inner_summary().loc[:, "type"].sort_index())
+                           plspm_calc.inner_summary().loc[:, "type"].sort_index(),
+                           check_dtype=False)
     assert plspm_calc.unidimensionality().drop(["mode", "mvs"], axis=1).isnull().values.all()

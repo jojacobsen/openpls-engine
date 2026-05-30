@@ -15,10 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import numpy as np, pandas as pd, plspm.config as c, statsmodels.api as sm, plspm.util as util, math
-from typing import Tuple
-from plspm.scheme import Scheme
+import math
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+
+import plspm.config as c
+import plspm.util as util
 from plspm.mode import Mode
+from plspm.scheme import Scheme
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -53,7 +59,7 @@ class _MetricWeights:
         self.__weights_old = weights_new
         return convergence
 
-    def calculate(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def calculate(self) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         weight_factors = 1 / (self.__data.dot(self.__weights).std(axis=0) / self.__correction)
         wf_diag = pd.DataFrame(np.diag(weight_factors), index=weight_factors.index, columns=weight_factors.index)
         weights = self.__weights.dot(wf_diag)
@@ -119,7 +125,7 @@ class _NonmetricWeights:
                                                                      self.__correction)
         return np.power(np.abs(scores_old) - np.abs(self.__scores), 2).sum()
 
-    def calculate(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def calculate(self) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         lvs = list(self.__path)
         weights = pd.DataFrame(0.0, index=self.__mvs, columns=lvs)
         data_new = pd.DataFrame(0.0, index=self.__index, columns=self.__mvs)

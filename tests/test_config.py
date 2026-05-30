@@ -15,9 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pandas as pd, pytest, numpy.testing as npt, plspm.config as c, pandas.testing as pt
-from plspm.scale import Scale
+import numpy.testing as npt
+import pandas as pd
+import pandas.testing as pt
+import pytest
+
+import plspm.config as c
 from plspm.mode import Mode
+from plspm.scale import Scale
 
 
 def config_test_path_matrix():
