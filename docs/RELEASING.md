@@ -13,23 +13,23 @@ This is the maintainer workflow for cutting a release and publishing to PyPI.
 
 ## One-time setup (first release only)
 
-1. Reserve the project name on PyPI by either:
-   a) doing an initial upload from a maintainer machine with
-      `twine upload`, or
-   b) configuring "pending" trusted publishing at
-      <https://pypi.org/manage/account/publishing/> before any release exists.
-2. Add a **trusted publisher** for the project on PyPI:
-   - PyPI project page, "Publishing" tab, "Add a new publisher"
+The workflow publishes every tagged release (stable or pre-release like
+`a1`, `b1`, `rc1`) directly to PyPI. PyPI handles pre-release semantics
+natively: `pip install openpls-engine` skips pre-releases by default;
+users opt in with `pip install --pre openpls-engine` or by pinning
+`openpls-engine==X.Y.Za1`.
+
+1. Configure a **pending trusted publisher** on PyPI before the first
+   release exists. Sign in at <https://pypi.org/manage/account/publishing/>
+   and add:
+   - PyPI Project Name: `openpls-engine`
    - Owner: `jojacobsen`
    - Repository name: `openpls-engine`
    - Workflow filename: `release.yml`
    - Environment name: `pypi`
-3. Same on TestPyPI (<https://test.pypi.org>) with environment name
-   `testpypi`. TestPyPI is used by the workflow for any pre-release
-   (versions containing `a`, `b`, or `rc`).
-4. In GitHub repo settings, create environments `pypi` and `testpypi`.
-   Optionally add required reviewers on `pypi` to force a manual approval
-   gate before stable releases publish.
+2. In the GitHub repo settings, create an environment named `pypi`
+   (Settings, Environments, New environment). Optionally add required
+   reviewers to force a manual approval gate before each publish.
 
 ## Cutting a release
 
@@ -46,7 +46,7 @@ This is the maintainer workflow for cutting a release and publishing to PyPI.
 5. The `Release` GitHub Actions workflow takes it from here:
    - Builds sdist + wheel
    - Verifies the tag matches the pyproject version
-   - Publishes to TestPyPI (pre-releases) or PyPI (stable)
+   - Publishes to PyPI (pre-releases and stable use the same target)
    - Creates a GitHub Release with auto-generated notes
 
 ## Sanity check after publish
