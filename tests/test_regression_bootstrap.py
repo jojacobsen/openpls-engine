@@ -33,7 +33,7 @@ def test_bootstrap_metric():
     config.add_lv_with_columns_named("SAT", Mode.A, satisfaction, "sat")
     config.add_lv_with_columns_named("LOY", Mode.A, satisfaction, "loy")
 
-    plspm_calc = Plspm(satisfaction, config, bootstrap=True, processes=4)
+    plspm_calc = Plspm(satisfaction, config, bootstrap=True, bootstrap_iterations=400, processes=4)
     expected_boot_weights = pd.read_csv("file:tests/data/satisfaction_boot_weights.csv", index_col=0)
     npt.assert_allclose(util.sort_cols(expected_boot_weights),
                         util.sort_cols(plspm_calc.bootstrap().weights().drop(columns=columns_to_drop)), atol=0.05)
