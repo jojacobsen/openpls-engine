@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openpls-engine"
-version = "0.7.0a1"
+version = "0.7.0a2"
 description = "PLS-SEM compute engine, a maintained fork of plspm-python with extended metrics (SRMR, d_ULS, HTMT, Q², MGA) powering OpenPLS."
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }

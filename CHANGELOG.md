@@ -11,6 +11,13 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+## [0.7.0a2] - 2026-05-30
+
+First release published to PyPI. Identical code to `0.7.0a1`; bumped only
+to validate the trusted-publisher pipeline end to end. The previous
+`v0.7.0a1` GitHub release stays available as a download but was never
+uploaded to PyPI.
+
 ## [0.7.0a1] - 2026-05-30
 
 All planned ports from the OpenPLS web app are now in. This is the first
@@ -50,6 +57,7 @@ Initial OpenPLS rebrand of the `plspm-python` 0.5.7 baseline.
 - Forked `plspm-python` 0.5.7 with attribution preserved.
 - `pyproject.toml`, ruff config, GitHub Actions CI matrix (Py 3.10 to 3.13).
 
-[Unreleased]: https://github.com/jojacobsen/openpls-engine/compare/v0.7.0a1...HEAD
+[Unreleased]: https://github.com/jojacobsen/openpls-engine/compare/v0.7.0a2...HEAD
+[0.7.0a2]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.7.0a2
 [0.7.0a1]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.7.0a1
 [0.6.0a1]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.6.0a1
