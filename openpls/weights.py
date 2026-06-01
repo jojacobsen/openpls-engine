@@ -67,7 +67,10 @@ class _MetricWeights:
         cor = pd.concat([self.__data, scores], axis=1).corr().loc[list(self.__data), list(scores)]
         odm = weights.apply(lambda x: x!= 0).astype(int)
         sign = lambda x : math.copysign(1.0, x)
-        w_sign = (cor * odm).map(sign).sum(axis=0).apply(sign)
+        # Compute sign first, then mask: math.copysign(1.0, 0) returns +1.0,
+        # so masking BEFORE the sign call would let non-belonging cells (cor*odm == 0)
+        # contribute +1 to the per-LV vote and swamp small-LV signals.
+        w_sign = (cor.map(sign) * odm).sum(axis=0).apply(sign)
         if -1 in w_sign.values:
             w_sign = w_sign.apply(lambda x : -1 if x == 0 else x)
             w_sign_matrix = pd.DataFrame(np.diag(w_sign), index=w_sign.index, columns=w_sign.index)
