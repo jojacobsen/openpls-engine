@@ -25,9 +25,10 @@ The engine also powers [OpenPLS](https://openpls.app) (the hosted web
 application) and the CLI / Docker self-host distribution planned for the next
 phase of the roadmap.
 
-> **Status: pre-release.** All planned ports from the OpenPLS web app are in.
-> Numerical alignment with reference implementations is tracked in
-> [TODO.md](TODO.md). See [CHANGELOG.md](CHANGELOG.md) for the version history.
+> **Status: stable as of 1.0.0.** Public API (Plspm, Config, Mode, Scheme,
+> IPMA, PLSpredict, Moderation, FIMIX) follows semver. Numerical alignment
+> with reference implementations is tracked in [TODO.md](TODO.md). See
+> [CHANGELOG.md](CHANGELOG.md) for the version history.
 
 ## Why fork
 
@@ -40,14 +41,13 @@ phase of the roadmap.
 
 ## Installation
 
-`openpls-engine` is published on PyPI. The current line is a pre-release, so
-opt in explicitly:
+`openpls-engine` is published on PyPI:
 
 ```sh
-pip install --pre openpls-engine
+pip install openpls-engine
 ```
 
-Or pin a specific version:
+Or pin a specific version for reproducible analyses:
 
 ```sh
 pip install openpls-engine==1.0.0
