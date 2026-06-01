@@ -303,7 +303,7 @@ class Config:
         if self.__metric:
             metric_data = util.impute(data) if self.__missing else data
             if self.__scaled:
-                # Column-wise (Bessel-corrected) std matches SmartPLS 4 standardization.
+                # Column-wise (Bessel-corrected) std is the standard convention.
                 # Pooled-stack std (the original plspm-python behaviour) lets one
                 # high-variance indicator dominate a mixed-scale LV block.
                 scale_values = metric_data.std(ddof=1)

@@ -13,7 +13,7 @@ must only count indicators that actually belong to the LV.
 Before the fix, every non-belonging cell in `cor * odm` was zero and
 `math.copysign(1.0, 0)` evaluated to +1, so a 3-indicator LV embedded in a
 17-indicator model carried ~14 phantom +1 votes and could never trigger a
-flip — leaving SmartPLS-incompatible signs on small constructs (the OI
+flip — leaving the convention-incompatible sign on small constructs (the OI
 validation case)."""
 
 import numpy as np

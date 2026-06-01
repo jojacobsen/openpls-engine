@@ -38,10 +38,9 @@ class ModelFit:
     Indicator pairs that belong to the *same* Mode B (formative) LV are
     excluded from the sums: for composite measurement those indicators are
     treated as exogenous causes whose inter-correlation is empirical, not
-    model-implied — matching the SmartPLS / Henseler et al. (2014) §5.3
-    convention. Without this exemption, formative LVs with weakly inter-
-    correlated indicators inflate d_ULS / SRMR purely as a measurement-
-    model artifact.
+    model-implied (Henseler et al. 2014 §5.3). Without this exemption,
+    formative LVs with weakly inter-correlated indicators inflate d_ULS /
+    SRMR purely as a measurement-model artifact.
 
     See Henseler et al. (2014) for the construction; SRMR < 0.08 is the
     conventional acceptable-fit threshold.

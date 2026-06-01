@@ -64,8 +64,7 @@ def test_mode_b_within_lv_pairs_excluded_from_fit():
     """Regression: saturated-model fit (SRMR / d_ULS) must skip indicator pairs
     that belong to the same Mode B (formative) LV. Their inter-correlation is
     empirical, not implied by Λ Φ Λᵀ, so including them inflates the residual
-    sums purely as a measurement-model artifact (Henseler et al. 2014 §5.3,
-    SmartPLS convention).
+    sums purely as a measurement-model artifact (Henseler et al. 2014 §5.3).
 
     Construction: two LVs, one Mode A driver (DRV) with a strong common factor
     and one Mode B composite (CMP) whose indicators are intentionally weakly
