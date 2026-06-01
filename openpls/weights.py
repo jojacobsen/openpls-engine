@@ -21,10 +21,10 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
-import plspm.config as c
-import plspm.util as util
-from plspm.mode import Mode
-from plspm.scheme import Scheme
+import openpls.config as c
+import openpls.util as util
+from openpls.mode import Mode
+from openpls.scheme import Scheme
 
 pd.options.mode.chained_assignment = None  # default='warn'
 

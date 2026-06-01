@@ -37,7 +37,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from plspm.config import Config
+from openpls.config import Config
 
 
 def _rescale(x: pd.Series, lo: float, hi: float) -> pd.Series:

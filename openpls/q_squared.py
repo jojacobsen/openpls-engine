@@ -30,8 +30,8 @@ relevance (Stone 1974; Geisser 1974; Henseler & Sarstedt 2013).
 import numpy as np
 import pandas as pd
 
-from plspm.config import Config
-from plspm.scheme import Scheme
+from openpls.config import Config
+from openpls.scheme import Scheme
 
 
 class QSquared:
@@ -65,7 +65,7 @@ class QSquared:
         return [lv for lv in path.index if path.loc[lv].sum() > 0]
 
     def __compute(self) -> pd.DataFrame:
-        from plspm.plspm import Plspm  # local import to avoid circular dependency
+        from openpls.plspm import Plspm  # local import to avoid circular dependency
 
         df = self.__data
         endo = self.__endogenous()

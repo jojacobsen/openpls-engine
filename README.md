@@ -50,7 +50,7 @@ pip install --pre openpls-engine
 Or pin a specific version:
 
 ```sh
-pip install openpls-engine==0.7.0a3
+pip install openpls-engine==1.0.0
 ```
 
 To work from source instead:
@@ -79,27 +79,24 @@ pull request against `main`.
 ## Versioning
 
 `openpls-engine` follows [Semantic Versioning](https://semver.org). The
-current pre-1.0 line is `0.x`. Tagged releases (`v0.7.0`, `v1.0.0`, ...)
-trigger a GitHub Actions workflow that builds the package and publishes it
-to PyPI via OIDC trusted publishing. The version is the single source of
-truth in [`pyproject.toml`](pyproject.toml) and is exposed at runtime as
-`plspm.__version__`.
+public API is stable as of `1.0.0`. Tagged releases (`vX.Y.Z`) trigger a
+GitHub Actions workflow that builds the package and publishes it to PyPI
+via OIDC trusted publishing. The version is the single source of truth in
+[`pyproject.toml`](pyproject.toml) and is exposed at runtime as
+`openpls.__version__`.
 
-See [CHANGELOG.md](CHANGELOG.md) for the per-version history.
+See [CHANGELOG.md](CHANGELOG.md) for the per-version history. `1.0.0`
+renamed the import namespace from `plspm` to `openpls`; consumers upgrading
+from `0.7.x` must rewrite their imports (see CHANGELOG → Breaking).
 
 ## Usage
 
-The public API mirrors upstream `plspm` 0.5.7. The
-[upstream documentation](https://plspm.readthedocs.io/) is still authoritative
-for the inherited interface; OpenPLS-specific docs will land alongside the
-metric extensions.
-
 ```py
 import pandas as pd
-import plspm.config as c
-from plspm.plspm import Plspm
-from plspm.scheme import Scheme
-from plspm.mode import Mode
+from openpls import Plspm
+import openpls.config as c
+from openpls.scheme import Scheme
+from openpls.mode import Mode
 
 satisfaction = pd.read_csv("tests/data/satisfaction.csv", index_col=0)
 

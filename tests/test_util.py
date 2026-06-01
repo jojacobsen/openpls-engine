@@ -19,7 +19,7 @@ import numpy as np
 import numpy.testing as npt
 import pandas as pd
 
-import plspm.util as util
+import openpls.util as util
 
 
 def test_impute_missing_values():

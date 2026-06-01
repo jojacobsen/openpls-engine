@@ -19,13 +19,13 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 
-import plspm.util as util
-from plspm.config import Config
-from plspm.mode import Mode
+import openpls.util as util
+from openpls.config import Config
+from openpls.mode import Mode
 
 
 class Unidimensionality:
-    """Internal class that computes various reliability metrics. Use the method :meth:`~.plspm.Plspm.unidimensionality` defined on :class:`~.plspm.Plspm` to retrieve the results."""
+    """Internal class that computes various reliability metrics. Use the method :meth:`~.openpls.Plspm.unidimensionality` defined on :class:`~.openpls.Plspm` to retrieve the results."""
     def __init__(self, config: Config, data: pd.DataFrame, correction: float):
         self.__config = config
         self.__data = data

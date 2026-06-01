@@ -21,7 +21,7 @@ import numpy as np
 import pandas as pd
 import scipy.linalg as linalg
 
-import plspm.util as util
+import openpls.util as util
 
 
 class _ModeA(util.Value):

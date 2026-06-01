@@ -18,21 +18,21 @@
 import numpy as np
 import pandas as pd
 
-import plspm.config as c
-import plspm.inner_model as im
-import plspm.inner_summary as pis
-import plspm.outer_model as om
-import plspm.weights as w
-from plspm.bootstrap import Bootstrap
-from plspm.estimator import Estimator
-from plspm.fimix import FIMIX
-from plspm.fit import ModelFit
-from plspm.htmt import HTMT
-from plspm.ipma import IPMA
-from plspm.predict import PLSPredict
-from plspm.q_squared import QSquared
-from plspm.scheme import Scheme
-from plspm.unidimensionality import Unidimensionality
+import openpls.config as c
+import openpls.inner_model as im
+import openpls.inner_summary as pis
+import openpls.outer_model as om
+import openpls.weights as w
+from openpls.bootstrap import Bootstrap
+from openpls.estimator import Estimator
+from openpls.fimix import FIMIX
+from openpls.fit import ModelFit
+from openpls.htmt import HTMT
+from openpls.ipma import IPMA
+from openpls.predict import PLSPredict
+from openpls.q_squared import QSquared
+from openpls.scheme import Scheme
+from openpls.unidimensionality import Unidimensionality
 
 
 class Plspm:
@@ -156,7 +156,7 @@ class Plspm:
         Gets the path coefficient matrix
 
         Returns:
-            a DataFrame of similar form to the Path matrix passed into :class:`plspm.config.Config`, with the relevant path coefficients in each cell
+            a DataFrame of similar form to the Path matrix passed into :class:`openpls.config.Config`, with the relevant path coefficients in each cell
         """
         return self.__inner_model.path_coefficients()
 

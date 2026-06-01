@@ -21,17 +21,17 @@ import numpy as np
 import numpy.testing as npt
 import pandas as pd
 
-import plspm.util as util
-from plspm.mode import Mode
-from plspm.scale import Scale
-from plspm.util import TopoSort
+import openpls.util as util
+from openpls.mode import Mode
+from openpls.scale import Scale
+from openpls.util import TopoSort
 
 
 class Structure:
     """Specify relationships betweeen constructs
 
 
-    Use this class to specify the relationships between constructs. It will generate a path matrix suitable for using in :class:`~.plspm.config.Config`.
+    Use this class to specify the relationships between constructs. It will generate a path matrix suitable for using in :class:`~.openpls.config.Config`.
     """
     def __init__(self, path: pd.DataFrame = None):
         self.__toposort = TopoSort()
@@ -55,7 +55,7 @@ class Structure:
             self.__toposort.append(element[0], element[1])
 
     def path(self):
-        """Get a path matrix for use in :class:`~plspm.Config`.
+        """Get a path matrix for use in :class:`~openpls.Config`.
         """
         index = self.__toposort.order()
         path = pd.DataFrame(np.zeros((len(index), len(index)), int), columns=index, index=index)
@@ -73,7 +73,7 @@ class MV:
 
         Args:
             name: The name of the manifest variable (must match the column name corresponding to this manifest variable in the dataset).
-            scale: If using nonmetric data, the measurement type of the variable (otherwise ``None``). Takes a value from the enum :class:`~plspm.scale.Scale`. Note that if you specify a scale for one variable, you must specify a scale for all variables (or specify a default scale to use in the constructor).
+            scale: If using nonmetric data, the measurement type of the variable (otherwise ``None``). Takes a value from the enum :class:`~openpls.scale.Scale`. Note that if you specify a scale for one variable, you must specify a scale for all variables (or specify a default scale to use in the constructor).
         """
         self.__scale = scale
         self.__name = name
@@ -88,19 +88,19 @@ class MV:
 
 
 class Config:
-    """Specify the model you want to calculate with :class:`~.plspm.Plspm`
+    """Specify the model you want to calculate with :class:`~.openpls.Plspm`
 
-    Create an instance of this class in order to specify the model you want to use :class:`~.plspm.Plspm` to calculate.
+    Create an instance of this class in order to specify the model you want to use :class:`~.openpls.Plspm` to calculate.
     """
     def __init__(self, path: pd.DataFrame, scaled: bool = True, default_scale: Scale = None):
-        """Specify the model you want to calculate with :class:`~.plspm.Plspm`:
+        """Specify the model you want to calculate with :class:`~.openpls.Plspm`:
 
         Once you have created an instance of this class, add the relevant latent and manifest variables with :meth:`add_lv` or :meth:`add_lv_with_columns_named`
 
         Args:
-            path: A matrix specifying the inner model. You can create this using :class:`~plspm.config.Structure`. This square lower triangular matrix specifies the paths between the latent variables (the inner model). The index and columns of this matrix must be the same, and must consist of the names of the latent variables. Cells should contain 1 if the variable in the column affects the variable in the row, 0 otherwise.
+            path: A matrix specifying the inner model. You can create this using :class:`~openpls.config.Structure`. This square lower triangular matrix specifies the paths between the latent variables (the inner model). The index and columns of this matrix must be the same, and must consist of the names of the latent variables. Cells should contain 1 if the variable in the column affects the variable in the row, 0 otherwise.
             scaled: Whether manifest variables should be standardized. When ``True``, data is scaled to standardized values (mean 0 and variance 1). Only used when ``default_scale`` is set to ``None``.
-            default_scale: If your data is nonmetric, specify a default measurement type. Takes a value from the enum :class:`~plspm.scale.Scale`, or ``None`` (the default) if the data is metric and does not require scaling.
+            default_scale: If your data is nonmetric, specify a default measurement type. Takes a value from the enum :class:`~openpls.scale.Scale`, or ``None`` (the default) if the data is metric and does not require scaling.
         """
         self.__modes = {}
         self.__mvs = {}
@@ -186,7 +186,7 @@ class Config:
 
         Args:
             lv_name: The name of the latent variable to add. Must match the name used in the columns / index of the Path matrix passed into the constructor.
-            mode: Whether the latent variable is reflective (mode A) or formative (mode B) with respect to its manifest variables. Takes a value from the enum :class:`~plspm.mode.Mode`
+            mode: Whether the latent variable is reflective (mode A) or formative (mode B) with respect to its manifest variables. Takes a value from the enum :class:`~openpls.mode.Mode`
             *mvs: A list of manifest variables that make up the latent variable. These must be instances of :class:`MV`
         """
         assert mode in Mode
@@ -198,8 +198,6 @@ class Config:
         for mv in mvs:
             if mv.name() in self.__mv_scales:
                 raise ValueError("You can only specify a column once. You can specify a higher order construct with `add_higher_order(...)`")
-            if mv.name() in list(self.__path):
-                raise ValueError("You cannot specify MVs with the same name as LVs.")
             self.__mvs[lv_name].append(mv.name())
             scale = self.__default_scale if mv.scale() is None else mv.scale()
             self.__mv_scales[mv.name()] = scale
@@ -239,10 +237,10 @@ class Config:
 
         Args:
             lv_name: The name of the latent variable to add. Must match the name used in the columns / index of the Path matrix passed into the constructor.
-            mode: Whether the latent variable is reflective (mode A) or formative (mode B) with respect to its manifest variables. Takes a value from the enum :class:`~plspm.mode.Mode`
+            mode: Whether the latent variable is reflective (mode A) or formative (mode B) with respect to its manifest variables. Takes a value from the enum :class:`~openpls.mode.Mode`
             data: The dataset that will be passed into :class:`.Plspm`
             col_name_starts_with: The prefix for the column names in the dataset corresponding to the manifest variables. For example, if the columns are named ``var1``, ``var2``, ``var3``, use ``var``
-            default_scale: If the data is nonmetric, the measurement type of the manifest variables. Note that you can only use this method if all the manifest variables are the same type of measurement, otherwise use :meth:`add_lv`. Takes a value from the enum :class:`~plspm.scale.Scale`. ``None`` (the default) if the data is metric.
+            default_scale: If the data is nonmetric, the measurement type of the manifest variables. Note that you can only use this method if all the manifest variables are the same type of measurement, otherwise use :meth:`add_lv`. Takes a value from the enum :class:`~openpls.scale.Scale`. ``None`` (the default) if the data is metric.
         """
         names = filter(lambda x: x.startswith(col_name_starts_with), list(data))
         mvs = list(map(lambda mv: MV(mv, default_scale), names))
@@ -305,7 +303,10 @@ class Config:
         if self.__metric:
             metric_data = util.impute(data) if self.__missing else data
             if self.__scaled:
-                scale_values = metric_data.stack().std() * np.sqrt((metric_data.shape[0] - 1) / metric_data.shape[0])
+                # Column-wise (Bessel-corrected) std matches SmartPLS 4 standardization.
+                # Pooled-stack std (the original plspm-python behaviour) lets one
+                # high-variance indicator dominate a mixed-scale LV block.
+                scale_values = metric_data.std(ddof=1)
                 return util.treat(metric_data, scale_values=scale_values)
             else:
                 return util.treat(metric_data, scale=False)

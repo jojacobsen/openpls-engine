@@ -11,6 +11,48 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-06-01
+
+First stable release. Two breaking changes plus a numerical fix that brings
+mixed-scale models in line with SmartPLS 4. The public algorithm surface
+(Plspm, Config, Mode, Scheme, IPMA, PLSpredict, Moderation, FIMIX) is now
+considered stable under semver.
+
+### Breaking
+- **Import namespace renamed from `plspm` to `openpls`.** Replace every
+  `from plspm.<sub> import …` / `import plspm.<sub> as …` with the
+  `openpls.<sub>` equivalent. `Plspm` is now re-exported at the top level,
+  so the recommended entry point becomes `from openpls import Plspm`.
+  The PyPI distribution name (`openpls-engine`) is unchanged.
+- The internal module `openpls.plspm` keeps the class `Plspm` (the
+  algorithm name), but consumers should prefer the top-level import.
+
+### Fixed
+- `openpls.config.Config.treat_data()` now standardizes each indicator
+  column with its own Bessel-corrected (ddof=1) sample standard deviation,
+  matching SmartPLS 4. The upstream behaviour pooled the standard
+  deviation across all indicators in a latent variable's block, which
+  caused the high-variance indicator to dominate composite scores when
+  indicators had different native scales (e.g. Likert 1–7 mixed with a
+  percentile 0–100 measure). Loadings, R², HTMT, f² and Q² are
+  scale-invariant and therefore unaffected; outer weights and composite
+  scores now align with the SmartPLS convention. (Empirical case:
+  Employee Retention `JS` latent variable now reports JS1–JS5 loadings of
+  0.78, 0.80, 0.76, 0.76, 0.82 — within ±0.0005 of SmartPLS — instead of
+  the previous collapse onto JS5.)
+- `openpls.util.treat()` accepts a pandas `Series` of column-wise scale
+  values without the `if scale_values:` truthy check raising
+  `"The truth value of a Series is ambiguous"`.
+- `openpls.config.Config.add_lv()` no longer rejects manifest variables
+  whose name matches a latent variable. ECSI-style models with single-item
+  LVs (e.g. CUSCO) previously crashed at config time; MV and LV names live
+  in separate internal namespaces, so the check was defensive only.
+
+### Removed
+- Legacy `setup.py` shim. The build is driven entirely by
+  `pyproject.toml` (PEP 621); `pip install` and `python -m build` behave
+  identically.
+
 ## [0.7.0a4] - 2026-05-30
 
 Metadata-only patch. Adds a `Documentation` link to PyPI's project sidebar

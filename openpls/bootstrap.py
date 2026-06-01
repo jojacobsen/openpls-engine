@@ -22,11 +22,11 @@ from queue import Empty
 import numpy as np
 import pandas as pd
 
-import plspm.config as c
-import plspm.inner_model as im
-import plspm.outer_model as om
-from plspm.estimator import Estimator
-from plspm.weights import WeightsCalculatorFactory
+import openpls.config as c
+import openpls.inner_model as im
+import openpls.outer_model as om
+from openpls.estimator import Estimator
+from openpls.weights import WeightsCalculatorFactory
 
 
 def _create_summary(data: pd.DataFrame, original):

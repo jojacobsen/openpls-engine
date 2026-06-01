@@ -3,10 +3,10 @@ import math
 import pandas as pd
 import pytest
 
-import plspm.config as c
-from plspm.mode import Mode
-from plspm.moderation import Moderation
-from plspm.scheme import Scheme
+import openpls.config as c
+from openpls.mode import Mode
+from openpls.moderation import Moderation
+from openpls.scheme import Scheme
 
 
 def _satisfaction_config():

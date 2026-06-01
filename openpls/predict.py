@@ -49,8 +49,8 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
-from plspm.config import Config
-from plspm.scheme import Scheme
+from openpls.config import Config
+from openpls.scheme import Scheme
 
 
 class PLSPredict:
@@ -186,7 +186,7 @@ class PLSPredict:
         return scores
 
     def __compute(self) -> pd.DataFrame:
-        from plspm.plspm import Plspm  # local import to avoid circular dependency
+        from openpls.plspm import Plspm  # local import to avoid circular dependency
 
         n = len(self.__data)
         endo_inds = self.__endogenous_indicators()

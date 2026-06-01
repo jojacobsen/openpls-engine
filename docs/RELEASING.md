@@ -6,9 +6,10 @@ This is the maintainer workflow for cutting a release and publishing to PyPI.
 
 - Semantic Versioning (`MAJOR.MINOR.PATCH`), with PEP 440 pre-release
   suffixes (`a1`, `b1`, `rc1`).
-- Pre-1.0 releases on the `0.x` line while the API stabilizes.
+- Public API is stable as of `1.0.0`; breaking changes require a major
+  bump.
 - The single source of truth for the version is `version` in
-  `pyproject.toml`. The runtime value `plspm.__version__` reads it via
+  `pyproject.toml`. The runtime value `openpls.__version__` reads it via
   `importlib.metadata` on the installed package.
 
 ## One-time setup (first release only)
@@ -53,7 +54,7 @@ users opt in with `pip install --pre openpls-engine` or by pinning
 
 ```sh
 pip install openpls-engine==X.Y.Z
-python -c "import plspm; print(plspm.__version__)"
+python -c "import openpls; print(openpls.__version__)"
 ```
 
 ## Rolling back

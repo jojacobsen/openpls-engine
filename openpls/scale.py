@@ -20,7 +20,7 @@ from enum import Enum
 import numpy as np
 import pandas as pd
 
-import plspm.util as util
+import openpls.util as util
 
 
 class _Numeric(util.Value):

@@ -22,7 +22,7 @@ import pandas as pd
 import statsmodels.api as sm
 from scipy.optimize import minimize
 
-import plspm.util as util
+import openpls.util as util
 
 
 class _CentroidInnerWeightCalculator(util.Value):

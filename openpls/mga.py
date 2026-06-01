@@ -35,8 +35,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from plspm.config import Config
-from plspm.scheme import Scheme
+from openpls.config import Config
+from openpls.scheme import Scheme
 
 
 @dataclass
@@ -117,7 +117,7 @@ class MGA:
         return pairs
 
     def __fit_paths(self, df: pd.DataFrame) -> dict[tuple[str, str], float]:
-        from plspm.plspm import Plspm  # local import to avoid circular dependency
+        from openpls.plspm import Plspm  # local import to avoid circular dependency
 
         fit = Plspm(df, self.__config, self.__scheme)
         path_df = fit.path_coefficients()
