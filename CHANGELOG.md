@@ -43,6 +43,10 @@ considered stable under semver.
 - `openpls.util.treat()` accepts a pandas `Series` of column-wise scale
   values without the `if scale_values:` truthy check raising
   `"The truth value of a Series is ambiguous"`.
+- `openpls.config.Config.add_lv()` no longer rejects manifest variables
+  whose name matches a latent variable. ECSI-style models with single-item
+  LVs (e.g. CUSCO) previously crashed at config time; MV and LV names live
+  in separate internal namespaces, so the check was defensive only.
 
 ### Removed
 - Legacy `setup.py` shim. The build is driven entirely by

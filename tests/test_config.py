@@ -159,9 +159,12 @@ def test_cannot_add_mvs_twice():
     with pytest.raises(ValueError):
         config.add_lv("APE", Mode.A, c.MV("a"), c.MV("b"))
 
-def test_cannot_add_mv_with_same_name_as_lv():
+def test_mv_can_share_name_with_lv():
+    """ECSI-style single-item LVs share a name with their indicator column.
+    The internal MV namespace (``__mvs``) is distinct from the LV namespace
+    (``__path``), so this configuration is supported."""
     structure = c.Structure()
     structure.add_path(source=["BONOBO"], target=["APE"])
     config = c.Config(structure.path())
-    with pytest.raises(ValueError):
-        config.add_lv("BONOBO", Mode.A, c.MV("BONOBO"))
+    config.add_lv("BONOBO", Mode.A, c.MV("BONOBO"))
+    config.add_lv("APE", Mode.A, c.MV("a"), c.MV("b"))
