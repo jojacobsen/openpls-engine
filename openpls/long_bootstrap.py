@@ -17,7 +17,7 @@
 
 """Long-running bootstrap with progress callbacks and BCa confidence intervals.
 
-Complements upstream :class:`plspm.bootstrap.Bootstrap` (which favours
+Complements upstream :class:`openpls.bootstrap.Bootstrap` (which favours
 multiprocessing for short runs in a single Python process) with a serial,
 progress-reporting variant suited to Cloud-Run-style workloads where:
 
@@ -27,8 +27,8 @@ progress-reporting variant suited to Cloud-Run-style workloads where:
 - richer per-path statistics are needed (sign-flipped samples, two-sided
   normal-approximation p-values, percentile or BCa confidence intervals).
 
-The API takes the same ``(config, data, scheme)`` triple as :class:`plspm.mga.MGA`
-and :class:`plspm.q_squared.QSquared` so all OpenPLS extensions share the same
+The API takes the same ``(config, data, scheme)`` triple as :class:`openpls.mga.MGA`
+and :class:`openpls.q_squared.QSquared` so all OpenPLS extensions share the same
 construction pattern.
 """
 from __future__ import annotations
@@ -41,8 +41,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm
 
-from plspm.config import Config
-from plspm.scheme import Scheme
+from openpls.config import Config
+from openpls.scheme import Scheme
 
 
 def _flip_signs(samples: np.ndarray, reference: float) -> np.ndarray:
@@ -117,7 +117,7 @@ def _aggregate(samples: np.ndarray, point: float, alpha: float) -> dict[str, flo
 class LongBootstrap:
     """Single-process bootstrap with progress callback and BCa CIs.
 
-    Use :class:`plspm.bootstrap.Bootstrap` for the upstream multiprocessing
+    Use :class:`openpls.bootstrap.Bootstrap` for the upstream multiprocessing
     implementation. ``LongBootstrap`` is intended for serial, long-running
     workloads where progress reporting is more useful than wall-clock speed.
     """
@@ -177,7 +177,7 @@ class LongBootstrap:
         return out
 
     def __fit(self, df: pd.DataFrame):
-        from plspm.plspm import Plspm  # local import to avoid circular dependency
+        from openpls.plspm import Plspm  # local import to avoid circular dependency
 
         return Plspm(df, self.__config, self.__scheme)
 

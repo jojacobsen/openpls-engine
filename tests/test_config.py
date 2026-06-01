@@ -20,9 +20,9 @@ import pandas as pd
 import pandas.testing as pt
 import pytest
 
-import plspm.config as c
-from plspm.mode import Mode
-from plspm.scale import Scale
+import openpls.config as c
+from openpls.mode import Mode
+from openpls.scale import Scale
 
 
 def config_test_path_matrix():

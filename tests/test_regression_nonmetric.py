@@ -22,12 +22,12 @@ import numpy.testing as npt
 import pandas as pd
 import pandas.testing as pt
 
-import plspm.config as c
-import plspm.util as util
-from plspm.mode import Mode
-from plspm.plspm import Plspm
-from plspm.scale import Scale
-from plspm.scheme import Scheme
+import openpls.config as c
+import openpls.util as util
+from openpls.mode import Mode
+from openpls.plspm import Plspm
+from openpls.scale import Scale
+from openpls.scheme import Scheme
 
 
 def russa_path_matrix():

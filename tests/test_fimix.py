@@ -4,10 +4,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import plspm.config as c
-from plspm.mode import Mode
-from plspm.plspm import Plspm
-from plspm.scheme import Scheme
+import openpls.config as c
+from openpls.mode import Mode
+from openpls.plspm import Plspm
+from openpls.scheme import Scheme
 
 
 def _satisfaction_plspm():

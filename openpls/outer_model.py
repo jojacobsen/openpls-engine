@@ -20,7 +20,7 @@ import pandas as pd
 
 
 class OuterModel:
-    """Internal class that computes characteristics of the outer model.  Use the methods :meth:`~.plspm.Plspm.outer_model` and :meth:`~.plspm.Plspm.crossloadings` defined on :class:`~.plspm.Plspm` to retrieve the outer model characteristics."""
+    """Internal class that computes characteristics of the outer model.  Use the methods :meth:`~.openpls.Plspm.outer_model` and :meth:`~.openpls.Plspm.crossloadings` defined on :class:`~.openpls.Plspm` to retrieve the outer model characteristics."""
 
     def __init__(self, data: pd.DataFrame, scores: pd.DataFrame, weights: pd.DataFrame, odm: pd.DataFrame,
                  r_squared: pd.Series):

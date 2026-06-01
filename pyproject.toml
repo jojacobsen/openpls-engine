@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openpls-engine"
-version = "0.7.0a4"
+version = "1.0.0"
 description = "PLS-SEM compute engine, a maintained fork of plspm-python with advanced analyses (IPMA, PLSpredict, moderation, FIMIX-PLS) and extended metrics (SRMR, d_ULS, HTMT, Q², MGA) powering OpenPLS."
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }
@@ -40,7 +40,7 @@ Issues = "https://github.com/jojacobsen/openpls-engine/issues"
 "Upstream (plspm-python)" = "https://github.com/googlecloudplatform/plspm-python"
 
 [tool.setuptools.packages.find]
-include = ["plspm*"]
+include = ["openpls*"]
 exclude = ["tests*", "docs*"]
 
 [tool.ruff]

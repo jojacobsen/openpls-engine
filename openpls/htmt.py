@@ -18,7 +18,7 @@
 import numpy as np
 import pandas as pd
 
-import plspm.config as c
+import openpls.config as c
 
 
 class HTMT:

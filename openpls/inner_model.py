@@ -63,7 +63,7 @@ def _effects(path: pd.DataFrame):
 
 
 class InnerModel:
-    """Internal class that calculates the attributes of the inner model. Use the methods :meth:`~plspm.Plspm.inner_model`, :meth:`~plspm.Plspm.path_coefficients`, and :meth:`~plspm.Plspm.effects` defined on :class:`~.plspm.Plspm` to retrieve the inner model characteristics."""
+    """Internal class that calculates the attributes of the inner model. Use the methods :meth:`~openpls.Plspm.inner_model`, :meth:`~openpls.Plspm.path_coefficients`, and :meth:`~openpls.Plspm.effects` defined on :class:`~.openpls.Plspm` to retrieve the inner model characteristics."""
     def __init__(self, path: pd.DataFrame, scores: pd.DataFrame):
         self.__summaries = None
         self.__r_squared = pd.Series(0.0, index=path.index, name="r_squared")

@@ -3,10 +3,10 @@ import math
 import numpy as np
 import pandas as pd
 
-import plspm.config as c
-from plspm.mode import Mode
-from plspm.plspm import Plspm
-from plspm.scheme import Scheme
+import openpls.config as c
+from openpls.mode import Mode
+from openpls.plspm import Plspm
+from openpls.scheme import Scheme
 
 
 def _satisfaction_plspm():
@@ -70,7 +70,7 @@ def test_htmt_skips_single_indicator_lv():
     config = c.Config(structure.path(), scaled=False)
     config.add_lv_with_columns_named("IMAG", Mode.A, satisfaction, "imag")
     # EXPE has 5 indicators expe1..expe5; replace by a single-indicator manual config.
-    from plspm.config import MV
+    from openpls.config import MV
     config.add_lv("EXPE", Mode.A, MV("expe1"))
 
     plspm_calc = Plspm(satisfaction, config, Scheme.CENTROID)

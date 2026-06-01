@@ -42,9 +42,9 @@ from __future__ import annotations
 
 import pandas as pd
 
-from plspm.config import MV, Config, Structure
-from plspm.mode import Mode
-from plspm.scheme import Scheme
+from openpls.config import MV, Config, Structure
+from openpls.mode import Mode
+from openpls.scheme import Scheme
 
 
 def _extend_path(
@@ -120,7 +120,7 @@ class Moderation:
         tolerance: float = 1e-6,
         missing_strategy: str = "casewise",
     ):
-        from plspm.plspm import Plspm  # local import to avoid circular dependency
+        from openpls.plspm import Plspm  # local import to avoid circular dependency
 
         path = config.path()
         for name, role in (

@@ -37,7 +37,7 @@ def treat(data: pd.DataFrame, center: bool = True, scale: bool = True, scale_val
     if center:
         data = data.subtract(data.mean())
     if scale:
-        if scale_values:
+        if scale_values is not None:
             data = data.divide(scale_values)
         else:
             data = data.divide(data.std())

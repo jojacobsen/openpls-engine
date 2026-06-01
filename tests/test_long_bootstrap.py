@@ -2,11 +2,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import plspm.config as c
-from plspm.long_bootstrap import LongBootstrap
-from plspm.mode import Mode
-from plspm.scale import Scale
-from plspm.scheme import Scheme
+import openpls.config as c
+from openpls.long_bootstrap import LongBootstrap
+from openpls.mode import Mode
+from openpls.scale import Scale
+from openpls.scheme import Scheme
 
 
 def _russa_config():
@@ -89,7 +89,7 @@ def test_long_bootstrap_rejects_bad_min_success_ratio():
 
 
 def test_long_bootstrap_runtime_floor_raises_when_all_resamples_fail(monkeypatch):
-    from plspm import long_bootstrap as lb
+    from openpls import long_bootstrap as lb
 
     original_fit = lb.LongBootstrap._LongBootstrap__fit
     state = {"called": 0}

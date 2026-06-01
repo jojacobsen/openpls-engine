@@ -18,9 +18,9 @@
 import pandas.testing as pt
 import pytest
 
-import plspm.config as c
-from plspm.estimator import Estimator
-from plspm.mode import Mode
+import openpls.config as c
+from openpls.estimator import Estimator
+from openpls.mode import Mode
 
 
 def test_can_add_hoc_lv_paths_correctly():

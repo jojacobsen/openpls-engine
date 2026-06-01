@@ -18,9 +18,13 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
-name = "plspm"
+from openpls.plspm import Plspm
+
+name = "openpls"
 
 try:
     __version__ = version("openpls-engine")
 except PackageNotFoundError:
     __version__ = "0.0.0+unknown"
+
+__all__ = ["Plspm"]

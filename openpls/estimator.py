@@ -18,9 +18,9 @@
 
 import pandas as pd
 
-import plspm.config as c
-from plspm.scale import Scale
-from plspm.weights import WeightsCalculatorFactory
+import openpls.config as c
+from openpls.scale import Scale
+from openpls.weights import WeightsCalculatorFactory
 
 
 class Estimator:

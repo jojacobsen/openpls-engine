@@ -20,12 +20,12 @@ import math
 import numpy as np
 import pandas as pd
 
-from plspm.config import Config
-from plspm.mode import Mode
+from openpls.config import Config
+from openpls.mode import Mode
 
 
 class InnerSummary:
-    """Internal class that computes a summary of the inner model.  Use the methods :meth:`~plspm.Plspm.inner_summary` and :meth:`~plspm.Plspm.goodness_of_fit` defined on :class:`~.plspm.Plspm` to retrieve the inner model characteristics."""
+    """Internal class that computes a summary of the inner model.  Use the methods :meth:`~openpls.Plspm.inner_summary` and :meth:`~openpls.Plspm.goodness_of_fit` defined on :class:`~.openpls.Plspm` to retrieve the inner model characteristics."""
 
     def __init__(self, config: Config, r_squared: pd.Series, r_squared_adj: pd.Series, outer_model: pd.DataFrame,
                  n_obs: int | None = None):
