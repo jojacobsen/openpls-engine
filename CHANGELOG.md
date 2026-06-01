@@ -11,6 +11,36 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-06-01
+
+Test-suite hardening release. No API changes, no runtime behavior changes.
+
+### Added
+- **Synthetic regression tests** that do not depend on any external
+  reference output:
+  - `tests/test_scheme_equivalence_two_lv.py`: locks down the invariant
+    that PATH, CENTROID, FACTORIAL, PCA, and NEWTON inner-weighting
+    schemes produce identical path coefficients, weights, loadings, and
+    R² on any two-LV model (each LV has exactly one neighbour, so the
+    inner update degenerates).
+  - `tests/test_redundancy_analysis_mode_b.py`: a Mode B formative
+    driver block predicting a single-item global rating LV. Asserts
+    path recovery is positive and within a sampling band across seeds,
+    R² lies in the expected attenuated range, and the single-indicator
+    loading is exactly 1.0. Also parametrized across inner schemes for
+    the degenerate two-LV case.
+  - `tests/test_path_recovery_synthetic.py`: three-LV mediation chain
+    X → M → Y with known structural coefficients. Asserts the engine
+    recovers direct paths, indirect / direct / total effects, and the
+    population R² on Y within sampling tolerance over multiple seeds.
+
+### Changed
+- Docstring and comment phrasing neutralised in `openpls/config.py`,
+  `openpls/fit.py`, `tests/test_fit.py`, and `tests/test_sign_convention.py`
+  to reference the underlying convention (Henseler et al. 2014 §5.3,
+  Hair et al., Wold) rather than naming a comparison tool. No code
+  behaviour change.
+
 ## [1.0.1] - 2026-06-01
 
 Two SmartPLS-parity fixes discovered while validating 1.0.0 against 14
