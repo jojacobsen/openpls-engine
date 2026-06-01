@@ -11,6 +11,45 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-06-01
+
+Two SmartPLS-parity fixes discovered while validating 1.0.0 against 14
+reference cases. No API changes.
+
+### Fixed
+- **Per-LV sign vote in `_MetricWeights.calculate()`**: applied
+  `math.copysign(1.0, x)` to the masked product `cor * odm` instead of
+  computing the sign first and masking after. Because `copysign(1.0, 0)`
+  returns `+1.0`, every non-belonging cell contributed a phantom `+1`
+  to the LV's vote, so a small LV (e.g. 3 indicators) embedded in a much
+  larger model could be out-voted by the large LV's phantom contributions —
+  leaving the small LV on the wrong sign even when every one of its
+  indicators correlated negatively with the latent direction. Now the
+  sign is computed first and then multiplied by the membership mask, so
+  non-belonging cells contribute `0` rather than `+1`. Empirical case:
+  the OI / OI-variations validation cases now match SmartPLS on
+  `Org_Ident → AC_Love` (β was `+0.41` vs SmartPLS `−0.41`).
+- **Saturated-model SRMR / d_ULS excludes within-LV pairs for Mode B
+  (formative) constructs**: the implied indicator-correlation matrix
+  `Σ̂ = Λ Φ Λᵀ` only constrains common-factor (Mode A) measurement.
+  Mode B indicators are exogenous causes of the composite, so their
+  pairwise correlation is empirical, not implied by `Λᵢ Λⱼ`. Including
+  those pairs in the SRMR / d_ULS sums inflated both metrics purely as a
+  measurement-model artifact (Henseler et al. 2014 §5.3, SmartPLS
+  convention). The fit now builds an inclusion mask that excludes
+  within-Mode-B-LV blocks and aggregates over the kept pairs only.
+  Models without Mode B LVs are unaffected. Empirical case: the
+  Corporate Reputation Advanced validation case d_ULS gap closes from
+  `+0.5104` to `-0.0004`.
+
+### Added
+- Regression test `tests/test_sign_convention.py` constructing a
+  14-indicator LV next to a 3-indicator LV whose indicators are all
+  inverted; pins the sign-vote behaviour against the old phantom-vote bug.
+- Regression test `tests/test_fit.py::test_mode_b_within_lv_pairs_excluded_from_fit`
+  asserting that the within-Mode-B residual block is masked out of both
+  SRMR and d_ULS sums by exact arithmetic identity.
+
 ## [1.0.0] - 2026-06-01
 
 First stable release. Two breaking changes plus a numerical fix that brings
