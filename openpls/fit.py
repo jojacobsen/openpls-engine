@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 
 import openpls.config as c
+from openpls.mode import Mode
 
 
 class ModelFit:
@@ -34,8 +35,16 @@ class ModelFit:
     lower triangle (the diagonal is forced to 1 by construction);
     d_ULS is the unweighted sum of those squared residuals.
 
-    See Henseler et al. (2014) for the construction; Henseler et al. (2014)
-    suggest SRMR < 0.08 as an acceptable-fit threshold.
+    Indicator pairs that belong to the *same* Mode B (formative) LV are
+    excluded from the sums: for composite measurement those indicators are
+    treated as exogenous causes whose inter-correlation is empirical, not
+    model-implied — matching the SmartPLS / Henseler et al. (2014) §5.3
+    convention. Without this exemption, formative LVs with weakly inter-
+    correlated indicators inflate d_ULS / SRMR purely as a measurement-
+    model artifact.
+
+    See Henseler et al. (2014) for the construction; SRMR < 0.08 is the
+    conventional acceptable-fit threshold.
     """
 
     def __init__(self, config: c.Config, data: pd.DataFrame, scores: pd.DataFrame, outer_model: pd.DataFrame):
@@ -76,9 +85,26 @@ class ModelFit:
         np.fill_diagonal(implied, 1.0)
         resid = S - implied
 
-        iu = np.tril_indices(n_ind, k=-1)
-        self.__srmr = float(np.sqrt(np.mean(resid[iu] ** 2)))
-        self.__d_uls = float(np.sum(resid[iu] ** 2))
+        # Saturated-model fit excludes within-LV pairs for Mode B (formative)
+        # constructs: their indicators are exogenous causes of the composite,
+        # not common-factor effects, so Λᵢ Λⱼ does not constrain Sᵢⱼ.
+        formative_lvs = {lv for lv in lv_names if config.mode(lv) == Mode.B}
+        if formative_lvs:
+            include = np.ones((n_ind, n_ind), dtype=bool)
+            for lv in formative_lvs:
+                idxs = [i for i, ind in enumerate(inds) if ind_to_lv[ind] == lv]
+                for a in idxs:
+                    for b in idxs:
+                        include[a, b] = False
+            tril_mask = np.tri(n_ind, n_ind, k=-1, dtype=bool)
+            pair_mask = tril_mask & include
+            kept = resid[pair_mask]
+        else:
+            iu = np.tril_indices(n_ind, k=-1)
+            kept = resid[iu]
+
+        self.__srmr = float(np.sqrt(np.mean(kept ** 2)))
+        self.__d_uls = float(np.sum(kept ** 2))
         self.__residuals = pd.DataFrame(resid, index=inds, columns=inds)
 
     def srmr(self) -> float:
