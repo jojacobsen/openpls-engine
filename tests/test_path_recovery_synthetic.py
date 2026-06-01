@@ -17,7 +17,6 @@ from openpls.mode import Mode
 from openpls.plspm import Plspm
 from openpls.scheme import Scheme
 
-
 TRUE_X_TO_M = 0.6
 TRUE_M_TO_Y = 0.55
 TRUE_X_TO_Y_DIRECT = 0.25
