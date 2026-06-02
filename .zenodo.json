@@ -1,0 +1,42 @@
+{
+  "upload_type": "software",
+  "title": "openpls-engine: An open-source Python implementation of Partial Least Squares Structural Equation Modeling",
+  "description": "<p>openpls-engine is a pure-Python library for Partial Least Squares Structural Equation Modeling (PLS-SEM) and its associated quality criteria (HTMT, SRMR, d_ULS, f^2, Q^2, Cronbach alpha, Dijkstra-Henseler rho_A) and advanced analyses (multi-group analysis, IPMA, two-stage moderation, FIMIX-PLS, PLSpredict, multiple inner-weighting schemes including path, centroid, factorial, BFGS, and Lohm&ouml;ller PCA). The engine is numerically validated against SmartPLS 4 across 14 reference cases drawn from the canonical PLS-SEM teaching literature, with all path coefficients, R^2 values, indicator loadings, outer weights, and HTMT ratios matching the reference within an absolute tolerance of |\u0394| &lt; 0.001. openpls-engine is a fork of plspm-python by Jez Humble (Google Cloud Platform) and inherits the GPL-3.0-or-later license.</p>",
+  "creators": [
+    {
+      "name": "Jacob, Johannes",
+      "orcid": "0009-0007-5488-8446",
+      "affiliation": "Independent Researcher, Hamburg, Germany"
+    }
+  ],
+  "keywords": [
+    "PLS-SEM",
+    "Partial Least Squares",
+    "Structural Equation Modeling",
+    "SEM",
+    "variance-based SEM",
+    "HTMT",
+    "SRMR",
+    "FIMIX-PLS",
+    "PLSpredict",
+    "IPMA",
+    "multi-group analysis",
+    "Python",
+    "open source"
+  ],
+  "license": "GPL-3.0-or-later",
+  "access_right": "open",
+  "communities": [],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/jojacobsen/openpls-engine",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "https://pypi.org/project/openpls-engine/",
+      "relation": "isIdenticalTo",
+      "resource_type": "software"
+    }
+  ]
+}

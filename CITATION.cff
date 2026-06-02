@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use openpls-engine in academic work, please cite both the software (this file) and the validation paper (see preferred-citation)."
+title: "openpls-engine: An open-source Python implementation of Partial Least Squares Structural Equation Modeling"
+type: software
+authors:
+  - family-names: Jacob
+    given-names: Johannes
+    orcid: "https://orcid.org/0009-0007-5488-8446"
+    affiliation: "Independent Researcher, Hamburg, Germany"
+repository-code: "https://github.com/jojacobsen/openpls-engine"
+url: "https://openpls.app/engine"
+license: GPL-3.0-or-later
+version: 1.0.2
+date-released: 2026-06-01
+keywords:
+  - PLS-SEM
+  - Partial Least Squares
+  - Structural Equation Modeling
+  - SEM
+  - variance-based SEM
+  - HTMT
+  - SRMR
+  - FIMIX-PLS
+  - PLSpredict
+  - IPMA
+  - multi-group analysis
+  - Python
+preferred-citation:
+  type: article
+  title: "OpenPLS Engine: An Open-Source Implementation of Partial Least Squares Structural Equation Modeling Validated Against SmartPLS 4 Across 14 Reference Cases"
+  authors:
+    - family-names: Jacob
+      given-names: Johannes
+      orcid: "https://orcid.org/0009-0007-5488-8446"
+  year: 2026
+  notes: "Preprint; DOI to be added upon SSRN publication."
