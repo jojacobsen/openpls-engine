@@ -5,6 +5,7 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/openpls-engine.svg)](https://pypi.org/project/openpls-engine/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPLv3+-blue.svg)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20509385.svg)](https://doi.org/10.5281/zenodo.20509385)
+[![Validation DOI](https://img.shields.io/badge/validation%20data-10.5281%2Fzenodo.20511533-blue)](https://doi.org/10.5281/zenodo.20511533)
 
 The compute engine behind [OpenPLS](https://openpls.app), a Python 3 library
 for Partial Least Squares Structural Equation Modeling (PLS-SEM).

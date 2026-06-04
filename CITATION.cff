@@ -33,4 +33,16 @@ preferred-citation:
       given-names: Johannes
       orcid: "https://orcid.org/0009-0007-5488-8446"
   year: 2026
-  notes: "Preprint; DOI to be added upon SSRN publication."
+  url: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6869001"
+  notes: "SSRN preprint, Abstract ID 6869001. Goes live after editor approval (24-48h after submission on 2026-06-02)."
+references:
+  - type: data
+    title: "Supplementary Validation Materials for OpenPLS Engine v1.0.2"
+    authors:
+      - family-names: Jacob
+        given-names: Johannes
+        orcid: "https://orcid.org/0009-0007-5488-8446"
+    year: 2026
+    doi: "10.5281/zenodo.20511533"
+    url: "https://doi.org/10.5281/zenodo.20511533"
+    notes: "Reference sidecars, path definitions, validation scripts, and the MATRIX.md summary for reproducing every value reported in the validation paper."
