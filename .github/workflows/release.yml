@@ -52,6 +52,8 @@ jobs:
           path: dist/
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
 
   github-release:
     name: Create GitHub Release
@@ -65,7 +67,7 @@ jobs:
         with:
           name: dist
           path: dist/
-      - name: Create release
+      - name: Create or update release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -73,8 +75,12 @@ jobs:
           if [[ "$GITHUB_REF_NAME" == *a* || "$GITHUB_REF_NAME" == *b* || "$GITHUB_REF_NAME" == *rc* ]]; then
             IS_PRERELEASE="--prerelease"
           fi
-          gh release create "$GITHUB_REF_NAME" \
-            --title "$GITHUB_REF_NAME" \
-            --generate-notes \
-            $IS_PRERELEASE \
-            dist/*
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --title "$GITHUB_REF_NAME" \
+              --generate-notes \
+              $IS_PRERELEASE \
+              dist/*
+          fi
