@@ -11,6 +11,15 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+### Added
+- **Variance Inflation Factor (VIF) diagnostics** via `Plspm.vif()`.
+  Two views: `items()` returns per-indicator VIF within each construct
+  block (collinearity diagnostic primarily for Mode B / formative
+  blocks); `inner()` returns per-predictor VIF for each endogenous LV
+  (structural collinearity among antecedents). Single-indicator blocks
+  and single-predictor endogenous LVs are omitted (VIF undefined or
+  trivially 1). Aligns the engine with `seminr::vif_items()`.
+
 ## [1.0.2] - 2026-06-01
 
 Test-suite hardening release. No API changes, no runtime behavior changes.

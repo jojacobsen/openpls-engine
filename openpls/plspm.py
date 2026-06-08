@@ -33,6 +33,7 @@ from openpls.predict import PLSPredict
 from openpls.q_squared import QSquared
 from openpls.scheme import Scheme
 from openpls.unidimensionality import Unidimensionality
+from openpls.vif import VIF
 
 
 class Plspm:
@@ -106,6 +107,7 @@ class Plspm:
         self.__config = config
         self.__scheme = scheme
         self.__q_squared: QSquared | None = None
+        self.__vif: VIF | None = None
         self.__bootstrap = None
         if bootstrap:
             if (filtered_data.shape[0] < 10):
@@ -265,6 +267,23 @@ class Plspm:
             repeats=repeats,
             seed=seed,
         )
+
+    def vif(self) -> VIF:
+        """Variance Inflation Factor diagnostics for the outer and inner model.
+
+        Computed lazily on first call. ``items()`` returns per-indicator
+        VIF within each construct block (collinearity diagnostic, primarily
+        for Mode B / formative blocks). ``inner()`` returns per-predictor
+        VIF for each endogenous LV (structural collinearity among
+        antecedents).
+
+        Returns:
+            an instance of :class:`.vif.VIF` exposing ``items()`` and
+            ``inner()``.
+        """
+        if self.__vif is None:
+            self.__vif = VIF(self.__config, self.__data, self.__scores)
+        return self.__vif
 
     def ipma(
         self,
