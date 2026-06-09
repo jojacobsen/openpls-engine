@@ -33,12 +33,12 @@ ruff check .    # lint
   of the fixture datasets under `tests/data/`.
 - Public APIs need a docstring explaining inputs, outputs, and the
   reference (paper or book) for the algorithm.
-- Avoid breaking the upstream `plspm` 0.5.7 API. New OpenPLS features go
-  into new submodules (see `plspm/htmt.py`, `plspm/mga.py`).
+- Avoid breaking the upstream `plspm` 0.5.7 API the engine inherits from.
+  New features go into new submodules (see `openpls/htmt.py`, `openpls/mga.py`).
 
 ## Releasing
 
-Maintainer task. See [`docs/RELEASING.md`](docs/RELEASING.md) for the tag
+Maintainer task. See [`RELEASING.md`](RELEASING.md) for the tag
 + publish flow.
 
 ## Questions
