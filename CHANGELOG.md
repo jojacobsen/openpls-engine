@@ -11,6 +11,21 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+### Added
+- **Disjoint two-stage higher-order constructs (HOC)** via
+  `Plspm.higher_order()` → `openpls.higher_order.HigherOrder`. Implements
+  the disjoint two-stage workflow recommended by Sarstedt, Hair, Cheah,
+  Becker & Ringle (2019) and Hair et al. (2022, *A Primer on PLS-SEM*,
+  3rd ed., Ch. 8). The fitted `Plspm` becomes stage 1; its first-order
+  LV scores are appended as indicators of the new second-order construct
+  and a stage-2 `Plspm` is fit with the HOC in place of its first-order
+  constituents in the structural model. All four canonical HOC types
+  (Type I R-R, II R-F, III F-R, IV F-F) are covered by combining the
+  first-order LV modes with the HOC mode. The legacy
+  `Config.add_higher_order` (repeated-indicators / embedded two-stage)
+  remains for backward compatibility but is no longer the recommended
+  path.
+
 ## [1.2.0] - 2026-06-09
 
 Three seminr-aligned diagnostics for measurement-error correction,

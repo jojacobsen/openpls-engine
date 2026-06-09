@@ -29,6 +29,7 @@ from openpls.cta import CTAPLS
 from openpls.estimator import Estimator
 from openpls.fimix import FIMIX
 from openpls.fit import ModelFit
+from openpls.higher_order import HigherOrder
 from openpls.htmt import HTMT
 from openpls.htmt2 import HTMT2
 from openpls.ipma import IPMA
@@ -141,6 +142,15 @@ class Plspm:
             a DataFrame with the latent variable scores, with a column for each latent variable. The index is the same as the index of the data passed in.
         """
         return self.__scores
+
+    def data(self) -> pd.DataFrame:
+        """The dataset actually used in the fit (after the configured
+        missing-value strategy has been applied)."""
+        return self.__data
+
+    def config(self) -> c.Config:
+        """The :class:`.config.Config` used in the fit."""
+        return self.__config
 
     def outer_model(self) -> pd.DataFrame:
         """Gets the outer model
@@ -471,6 +481,55 @@ class Plspm:
             tolerance=tolerance,
             n_restarts=n_restarts,
             seed=seed,
+        )
+
+    def higher_order(
+        self,
+        name: str,
+        first_order: list[str],
+        mode,
+        structure,
+        iterations: int = 100,
+        tolerance: float = 1e-6,
+        missing_strategy: str = "casewise",
+    ) -> HigherOrder:
+        """Disjoint two-stage higher-order construct
+        (Sarstedt et al. 2019; Hair et al. 2022).
+
+        Uses this fit as **stage 1** and fits a **stage-2** model in
+        which ``name`` is a new construct whose indicators are the
+        first-order LV scores produced by stage 1. The four canonical
+        HOC types (R-R, R-F, F-R, F-F) follow from the existing first-
+        order modes in this config plus the ``mode`` chosen here.
+
+        Args:
+            name: name of the second-order construct. Must not collide
+                with an existing LV or data column.
+            first_order: first-order LVs (from this fit) to roll into
+                the HOC. At least two are required.
+            mode: measurement mode of the HOC w.r.t. its first-order
+                indicators (:class:`.mode.Mode`).
+            structure: :class:`.config.Structure` of the stage-2 path
+                model. Must include ``name`` and must NOT include any
+                of the ``first_order`` LVs.
+            iterations, tolerance, missing_strategy: stage-2 ``Plspm``
+                fit options.
+
+        Returns:
+            a :class:`.higher_order.HigherOrder` instance exposing the
+            stage-2 fit (``refit()``) and HOC-specific accessors
+            (``loadings()``, ``summary()``).
+        """
+        return HigherOrder(
+            self,
+            name=name,
+            first_order=first_order,
+            mode=mode,
+            structure=structure,
+            scheme=self.__scheme,
+            iterations=iterations,
+            tolerance=tolerance,
+            missing_strategy=missing_strategy,
         )
 
     def bootstrap(self) -> Bootstrap:
