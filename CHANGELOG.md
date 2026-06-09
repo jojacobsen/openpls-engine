@@ -12,6 +12,15 @@ package and publishes it to PyPI via OIDC trusted publishing.
 ## [Unreleased]
 
 ### Added
+- **HTMT2** via `Plspm.htmt2()` → `openpls.htmt2.HTMT2`. Geometric-mean
+  refinement of the Heterotrait-Monotrait Ratio of Correlations
+  (Roemer, Schuberth & Henseler 2021). Replaces both arithmetic means
+  in the original Henseler/Ringle/Sarstedt 2015 HTMT with geometric
+  means, removing the bias HTMT shows when indicator loadings within a
+  block are unequal. Same API surface as `HTMT` (`matrix()`, `pairs()`).
+  Pairs involving a single-indicator construct or any zero indicator
+  correlation are returned as `NaN` (the geometric mean is undefined).
+  Aligns with `seminr` 's HTMT2 reporting.
 - **Consistent PLS (PLSc)** via `Plspm.plsc()` → `openpls.plsc.PLSc`.
   Implements the Dijkstra & Henseler (2015) bias correction for
   reflective (Mode A) constructs: per-LV `rho_A` reliability, an
