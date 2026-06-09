@@ -11,6 +11,45 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-09
+
+Four seminr-aligned additions covering structural effect sizes,
+discriminant validity, mediation decomposition, predictive accuracy, and
+one-call reporting. All APIs are additive (no existing behaviour or
+signatures changed), so this is a minor bump.
+
+### Added
+- **Publication-ready summary report** via `Plspm.report()` →
+  `openpls.report.Report`. Bundles the engine's individual diagnostics
+  (reliability with Cronbach α / ρ_A / ρ_C / AVE, HTMT and HTMT2 matrices
+  plus long-form pair tables, Fornell-Larcker matrix and per-LV verdict,
+  structural paths with f² and effect-size labels, per-LV R² / adjusted
+  R² / BIC / block communality / mean redundancy, SRMR / d_ULS / GoF,
+  outer and inner VIF) into one object so the standard PLS-SEM research
+  report (Hair, Hult, Ringle & Sarstedt 2022) can be exported with a
+  single call. Pure orchestration over existing `Plspm` methods — no new
+  numbers, no new behavior.
+- **Specific indirect effects** via `Plspm.specific_indirect_effects()`.
+  Per-path mediation decomposition along every directed predecessor →
+  successor route in the structural model, with bootstrap percentile CIs
+  and significance verdicts. Aligns the engine with `seminr` 's
+  `specific_effect_significance()` (Hair et al. 2022 §7.3).
+- **PLSpredict full Shmueli et al. 2019 panel.** `PLSPredict.summary()`
+  now reports the complete reviewer-standard table: in-sample +
+  out-of-sample RMSE, MAE, and MAPE for both PLS and the LM benchmark,
+  plus the PLS-vs-LM verdict per indicator. The existing one-sided
+  Q²_predict against the indicator-average baseline is unchanged.
+- **Cohen f² effect sizes** via `Plspm.f_squared()` →
+  `openpls.f_squared.FSquared`. Per-path effect-size decomposition with
+  the canonical small / medium / large thresholds (0.02 / 0.15 / 0.35,
+  Cohen 1988; Hair et al. 2022). Aligns with `seminr::f2()`.
+- **Fornell-Larcker discriminant validity** via `Plspm.fornell_larcker()`
+  → `openpls.fornell_larcker.FornellLarcker`. Matrix view with √AVE on
+  the diagonal and inter-construct correlations off-diagonal, plus a
+  per-LV verdict that flags any construct whose √AVE is below its
+  largest inter-construct correlation. Aligns with `seminr` 's
+  `fornell_larcker()` reporting.
+
 ## [1.3.0] - 2026-06-09
 
 Disjoint two-stage higher-order constructs as a first-class API. The
@@ -303,7 +342,8 @@ Initial OpenPLS rebrand of the `plspm-python` 0.5.7 baseline.
 - Forked `plspm-python` 0.5.7 with attribution preserved.
 - `pyproject.toml`, ruff config, GitHub Actions CI matrix (Py 3.10 to 3.13).
 
-[Unreleased]: https://github.com/jojacobsen/openpls-engine/compare/v0.7.0a3...HEAD
+[Unreleased]: https://github.com/jojacobsen/openpls-engine/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/jojacobsen/openpls-engine/releases/tag/v1.4.0
 [0.7.0a3]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.7.0a3
 [0.7.0a2]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.7.0a2
 [0.7.0a1]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.7.0a1
