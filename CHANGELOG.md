@@ -19,6 +19,15 @@ package and publishes it to PyPI via OIDC trusted publishing.
   (structural collinearity among antecedents). Single-indicator blocks
   and single-predictor endogenous LVs are omitted (VIF undefined or
   trivially 1). Aligns the engine with `seminr::vif_items()`.
+- **Confirmatory Tetrad Analysis (CTA-PLS)** via `Plspm.cta()` →
+  `openpls.cta.CTAPLS`. Diagnostic for the outer model that tests
+  reflective (Mode A) specification per block of four or more indicators
+  using Bollen and Ting's (1993) vanishing-tetrad theorem (procedure of
+  Gudergan, Ringle, Wende & Will 2008). Bootstrap-based two-sided
+  p-values under H0: tau = 0 with a within-block Holm step-down
+  correction. `tetrads()` returns the per-tetrad table; `summary()`
+  returns the per-block verdict (`"reflective supported"` vs
+  `"reflective rejected"`). Aligns with `seminr` 's CTA tooling.
 
 ## [1.0.2] - 2026-06-01
 
