@@ -23,7 +23,9 @@ progress-streaming long bootstrap. It also ships
 (consistent PLS, Dijkstra & Henseler 2015) for measurement-error
 attenuation correction in reflective models, PLSpredict out-of-sample
 validation, IPMA (Importance-Performance Map Analysis),
-two-stage moderation, FIMIX-PLS finite-mixture segmentation, and a
+two-stage moderation, FIMIX-PLS finite-mixture segmentation, the
+Gaussian-copula endogeneity test (Park & Gupta 2012; Hult et al. 2018),
+and a
 **quasi-Newton (BFGS) inner-weighting scheme** and a **Lohmöller PCA
 scheme**, two new alternatives to the classical centroid, factorial, and
 path schemes (five inner-weighting schemes total).
@@ -45,7 +47,7 @@ Hosted docs at [**openpls.app/engine**](https://openpls.app/engine):
 - [Installation](https://openpls.app/engine/installation/) - pip and source installs.
 - [Quickstart](https://openpls.app/engine/quickstart/) - end-to-end fit on the satisfaction dataset.
 - [Core concepts](https://openpls.app/engine/concepts/) - PLS-SEM, Mode A/B, inner-weighting schemes, missing-value strategies.
-- [API reference](https://openpls.app/engine/api/) - the full public surface (Plspm, Config, VIF, CTAPLS, PLSc, IPMA, PLSpredict, Moderation, FIMIX, MGA, LongBootstrap).
+- [API reference](https://openpls.app/engine/api/) - the full public surface (Plspm, Config, VIF, CTAPLS, PLSc, GaussianCopula, IPMA, PLSpredict, Moderation, FIMIX, MGA, LongBootstrap).
 - [Examples](https://openpls.app/engine/examples/) - runnable snippets for each advanced analysis.
 - [Changelog](https://openpls.app/engine/changelog/) - version history with per-feature notes.
 
