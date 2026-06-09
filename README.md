@@ -15,7 +15,8 @@ for Partial Least Squares Structural Equation Modeling (PLS-SEM).
 Humble (Google). It keeps the original algorithm intact and adds the metrics
 and quality criteria that modern PLS-SEM reporting requires: HTMT, SRMR,
 d_ULS, adjusted R², BIC, Stone-Geisser Q², Cronbach α, Dijkstra-Henseler ρ,
-VIF (per-indicator and per-predictor), multi-group analysis, and a
+VIF (per-indicator and per-predictor), CTA-PLS (confirmatory tetrad
+analysis for reflective measurement), multi-group analysis, and a
 progress-streaming long bootstrap. It also ships
 **advanced** analyses that go beyond what `plspm-python` covers: PLSpredict
 out-of-sample validation, IPMA (Importance-Performance Map Analysis),

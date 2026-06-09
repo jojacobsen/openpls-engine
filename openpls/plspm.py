@@ -24,6 +24,7 @@ import openpls.inner_summary as pis
 import openpls.outer_model as om
 import openpls.weights as w
 from openpls.bootstrap import Bootstrap
+from openpls.cta import CTAPLS
 from openpls.estimator import Estimator
 from openpls.fimix import FIMIX
 from openpls.fit import ModelFit
@@ -315,6 +316,39 @@ class Plspm:
             scale_min=scale_min,
             scale_max=scale_max,
             indicator_scales=indicator_scales,
+        )
+
+    def cta(
+        self,
+        n_boot: int = 500,
+        alpha: float = 0.05,
+        seed: int | None = 42,
+    ) -> CTAPLS:
+        """Confirmatory Tetrad Analysis for PLS (Gudergan et al. 2008).
+
+        Tests whether reflective (Mode A) measurement is supported for each
+        block with at least four indicators. Each block's tetrads are
+        bootstrapped under ``H0: tau = 0`` and reduced with a within-block
+        Holm step-down correction at ``alpha``.
+
+        Args:
+            n_boot: number of bootstrap resamples per block (default 500,
+                must be >= 50).
+            alpha: family-wise significance level for the Holm correction
+                (default 0.05, must be in ``(0, 1)``).
+            seed: RNG seed for the bootstrap. Pass ``None`` for
+                non-deterministic results.
+
+        Returns:
+            a :class:`.cta.CTAPLS` instance. Call ``tetrads()`` for the
+            per-tetrad table and ``summary()`` for the per-block verdict.
+        """
+        return CTAPLS(
+            self.__config,
+            self.__data,
+            n_boot=n_boot,
+            alpha=alpha,
+            seed=seed,
         )
 
     def fimix(
