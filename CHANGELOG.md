@@ -11,6 +11,13 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-06-09
+
+Three seminr-aligned diagnostics for measurement-error correction,
+discriminant validity, and structural-equation endogeneity. All APIs
+are additive (no existing behaviour or signatures changed), so this is
+a minor bump.
+
 ### Added
 - **Gaussian-copula endogeneity test** via `Plspm.copula()` →
   `openpls.copula.GaussianCopula`. Park & Gupta (2012) / Hult, Hair,
