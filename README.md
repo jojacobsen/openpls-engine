@@ -13,7 +13,8 @@ for Partial Least Squares Structural Equation Modeling (PLS-SEM).
 `openpls-engine` is a fork of
 [`plspm-python`](https://github.com/googlecloudplatform/plspm-python) by Jez
 Humble (Google). It keeps the original algorithm intact and adds the metrics
-and quality criteria that modern PLS-SEM reporting requires: HTMT, SRMR,
+and quality criteria that modern PLS-SEM reporting requires: HTMT (and
+HTMT2 geometric-mean variant), SRMR,
 d_ULS, adjusted R², BIC, Stone-Geisser Q², Cronbach α, Dijkstra-Henseler ρ,
 VIF (per-indicator and per-predictor), CTA-PLS (confirmatory tetrad
 analysis for reflective measurement), multi-group analysis, and a

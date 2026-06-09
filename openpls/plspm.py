@@ -29,6 +29,7 @@ from openpls.estimator import Estimator
 from openpls.fimix import FIMIX
 from openpls.fit import ModelFit
 from openpls.htmt import HTMT
+from openpls.htmt2 import HTMT2
 from openpls.ipma import IPMA
 from openpls.plsc import PLSc
 from openpls.predict import PLSPredict
@@ -111,6 +112,7 @@ class Plspm:
         self.__q_squared: QSquared | None = None
         self.__vif: VIF | None = None
         self.__plsc: PLSc | None = None
+        self.__htmt2: HTMT2 | None = None
         self.__bootstrap = None
         if bootstrap:
             if (filtered_data.shape[0] < 10):
@@ -213,6 +215,23 @@ class Plspm:
             and a long-format pair list can be retrieved.
         """
         return self.__htmt
+
+    def htmt2(self) -> HTMT2:
+        """Gets HTMT2 — the geometric-mean refinement of HTMT
+        (Roemer, Schuberth & Henseler, 2021).
+
+        HTMT2 replaces the two arithmetic means in HTMT with geometric
+        means; it is consistent under congeneric measurement and removes
+        the bias HTMT shows when indicator loadings within a block are
+        unequal. Computed lazily on first call.
+
+        Returns:
+            an instance of :class:`.htmt2.HTMT2` exposing ``matrix()``
+            and ``pairs()``.
+        """
+        if self.__htmt2 is None:
+            self.__htmt2 = HTMT2(self.__config, self.__data)
+        return self.__htmt2
 
     def model_fit(self) -> ModelFit:
         """Gets the model-fit indices (SRMR, d_ULS).
