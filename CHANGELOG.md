@@ -11,6 +11,11 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-06-09
+
+Two seminr-aligned outer-model diagnostics. Both APIs are additive (no
+existing behaviour or signatures changed), so this is a minor bump.
+
 ### Added
 - **Variance Inflation Factor (VIF) diagnostics** via `Plspm.vif()`.
   Two views: `items()` returns per-indicator VIF within each construct
