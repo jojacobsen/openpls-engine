@@ -11,6 +11,17 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+### Added
+- **Consistent PLS (PLSc)** via `Plspm.plsc()` → `openpls.plsc.PLSc`.
+  Implements the Dijkstra & Henseler (2015) bias correction for
+  reflective (Mode A) constructs: per-LV `rho_A` reliability, an
+  adjusted construct-correlation matrix, corrected path coefficients
+  re-estimated by OLS on the dis-attenuated correlations, corrected
+  `R²` / adjusted `R²`, and corrected outer loadings under a common-
+  factor interpretation. Formative (Mode B) and single-indicator
+  constructs receive `rho_A = 1` by convention. Aligns with
+  `seminr::PLSc()`.
+
 ## [1.1.0] - 2026-06-09
 
 Two seminr-aligned outer-model diagnostics. Both APIs are additive (no
