@@ -41,6 +41,25 @@ phase of the roadmap.
 > with reference implementations is tracked in [TODO.md](TODO.md). See
 > [CHANGELOG.md](CHANGELOG.md) for the version history.
 
+## Recent additions
+
+- **1.3.0** — disjoint two-stage **higher-order constructs (HOC)** via
+  `Plspm.higher_order(name, first_order, mode, structure, ...)`. Covers all
+  four canonical HOC types (I R-R, II R-F, III F-R, IV F-F) and supports
+  chained / nested HOCs. The legacy `Config.add_higher_order`
+  (repeated-indicators) is kept for backward compatibility.
+- **1.2.0** — three additive diagnostics in one release:
+  - **PLSc** (`Plspm.plsc()`) — Dijkstra-Henseler 2015 consistent-PLS bias
+    correction for reflective measurement: per-LV `rho_A`, dis-attenuated
+    construct correlations, corrected paths / R² / loadings.
+  - **HTMT2** (`Plspm.htmt2()`) — Roemer / Schuberth / Henseler 2021
+    geometric-mean refinement of HTMT.
+  - **Gaussian-copula endogeneity test** (`Plspm.copula(...)`) — Park & Gupta
+    2012 / Hult et al. 2018 procedure with a Cramér-von Mises admissibility
+    check.
+- **1.1.0** — **VIF** (`items()` + `inner()`) and **CTA-PLS** (`Plspm.cta(...)`)
+  outer-model diagnostics.
+
 ## Documentation
 
 Hosted docs at [**openpls.app/engine**](https://openpls.app/engine):
