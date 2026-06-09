@@ -34,6 +34,18 @@ phase of the roadmap.
 > with reference implementations is tracked in [TODO.md](TODO.md). See
 > [CHANGELOG.md](CHANGELOG.md) for the version history.
 
+## Documentation
+
+Hosted docs at [**openpls.app/engine**](https://openpls.app/engine):
+
+- [Introduction](https://openpls.app/engine/) - what the library does and who it is for.
+- [Installation](https://openpls.app/engine/installation/) - pip and source installs.
+- [Quickstart](https://openpls.app/engine/quickstart/) - end-to-end fit on the satisfaction dataset.
+- [Core concepts](https://openpls.app/engine/concepts/) - PLS-SEM, Mode A/B, inner-weighting schemes, missing-value strategies.
+- [API reference](https://openpls.app/engine/api/) - the full public surface (Plspm, Config, VIF, CTAPLS, IPMA, PLSpredict, Moderation, FIMIX, MGA, LongBootstrap).
+- [Examples](https://openpls.app/engine/examples/) - runnable snippets for each advanced analysis.
+- [Changelog](https://openpls.app/engine/changelog/) - version history with per-feature notes.
+
 ## Why fork
 
 * Upstream has not seen a release since 2020.
