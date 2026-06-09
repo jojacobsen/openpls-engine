@@ -27,7 +27,12 @@ def test_predict_metrics_table_structure():
     fit = _satisfaction_plspm()
     m = fit.predict(k=5).metrics()
     assert list(m.index.names) == ["lv", "indicator"]
-    assert set(m.columns) == {"rmse_pls", "mae_pls", "q2_predict", "rmse_lm", "mae_lm"}
+    assert set(m.columns) == {
+        "rmse_pls", "mae_pls", "mape_pls", "q2_predict",
+        "rmse_lm", "mae_lm", "mape_lm",
+        "rmse_pls_in", "mae_pls_in", "mape_pls_in",
+        "rmse_lm_in", "mae_lm_in", "mape_lm_in",
+    }
     # Endogenous LVs in ECSI are EXPE, QUAL, VAL, SAT, LOY. IMAG is exogenous,
     # so its indicators must not appear.
     lvs = {lv for lv, _ in m.index}
@@ -107,3 +112,47 @@ def test_predict_repeats_average_more_stable():
     # With more repeats the structure is unchanged but values can shift.
     assert m_single.shape == m_multi.shape
     assert set(m_single.index) == set(m_multi.index)
+
+
+def test_predict_mape_finite_and_positive():
+    """MAPE columns are populated, finite, and non-negative."""
+    fit = _satisfaction_plspm()
+    m = fit.predict(k=5).metrics()
+    for col in ("mape_pls", "mape_lm", "mape_pls_in", "mape_lm_in"):
+        for ind in m.index:
+            val = float(m.loc[ind, col])
+            assert math.isfinite(val), f"{ind}: {col} not finite"
+            assert val >= 0.0, f"{ind}: {col} = {val} < 0"
+
+
+def test_predict_in_sample_columns_finite_and_at_most_oos():
+    """In-sample errors are populated and (typically) <= out-of-sample errors."""
+    fit = _satisfaction_plspm()
+    m = fit.predict(k=5, seed=42).metrics()
+    for col in ("rmse_pls_in", "mae_pls_in", "rmse_lm_in", "mae_lm_in"):
+        for ind in m.index:
+            val = float(m.loc[ind, col])
+            assert math.isfinite(val), f"{ind}: {col} not finite"
+            assert val >= 0.0, f"{ind}: {col} = {val} < 0"
+    # in-sample <= out-of-sample for the majority of indicators (loose check
+    # because k-fold variance can flip a few).
+    pls_better_in = (m["rmse_pls_in"] <= m["rmse_pls"] + 1e-6).sum()
+    lm_better_in = (m["rmse_lm_in"] <= m["rmse_lm"] + 1e-6).sum()
+    assert pls_better_in >= len(m) // 2
+    assert lm_better_in >= len(m) // 2
+
+
+def test_predict_in_sample_does_not_depend_on_seed_or_k():
+    """In-sample fit uses the whole dataset, so it is invariant under k/seed."""
+    fit = _satisfaction_plspm()
+    m_a = fit.predict(k=5, seed=1).metrics()
+    m_b = fit.predict(k=8, seed=99).metrics()
+    in_cols = ["rmse_pls_in", "mae_pls_in", "mape_pls_in",
+               "rmse_lm_in", "mae_lm_in", "mape_lm_in"]
+    for col in in_cols:
+        for ind in m_a.index:
+            assert math.isclose(
+                float(m_a.loc[ind, col]),
+                float(m_b.loc[ind, col]),
+                rel_tol=1e-9, abs_tol=1e-9,
+            ), f"{ind}: {col} differs between seeds/k"
