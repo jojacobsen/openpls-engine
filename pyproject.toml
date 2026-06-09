@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openpls-engine"
-version = "1.3.0"
-description = "PLS-SEM compute engine, a maintained fork of plspm-python with advanced analyses (PLSc, IPMA, PLSpredict, moderation, FIMIX-PLS, Gaussian-copula endogeneity, disjoint two-stage HOC) and extended metrics (SRMR, d_ULS, HTMT, HTMT2, Q², MGA) powering OpenPLS."
+version = "1.4.0"
+description = "PLS-SEM compute engine, a maintained fork of plspm-python with advanced analyses (PLSc, IPMA, PLSpredict, moderation, FIMIX-PLS, Gaussian-copula endogeneity, disjoint two-stage HOC, specific indirect effects) and extended metrics (SRMR, d_ULS, HTMT, HTMT2, Q², MGA, Cohen f², Fornell-Larcker, publication-ready Report) powering OpenPLS."
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }
 requires-python = ">=3.10"
