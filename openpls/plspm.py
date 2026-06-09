@@ -39,6 +39,7 @@ from openpls.plsc import PLSc
 from openpls.predict import PLSPredict
 from openpls.q_squared import QSquared
 from openpls.scheme import Scheme
+from openpls.specific_indirect import specific_indirect_point
 from openpls.unidimensionality import Unidimensionality
 from openpls.vif import VIF
 
@@ -261,6 +262,46 @@ class Plspm:
                 self.__outer_model.model(),
             )
         return self.__fornell_larcker
+
+    def specific_indirect_effects(
+        self,
+        source: str,
+        target: str,
+        through: list[str] | None = None,
+    ) -> pd.DataFrame:
+        """Point-estimate specific indirect effects (mediation analysis).
+
+        Returns the product of path coefficients along each mediation
+        chain ``source -> M1 -> ... -> target``. With ``through=None``
+        (default), every indirect chain in the structural model is
+        enumerated; with ``through`` set, only that single chain is
+        returned. For bootstrap confidence intervals use
+        :meth:`~openpls.bootstrap.Bootstrap.specific_indirect_effects`.
+
+        Args:
+            source: source LV name.
+            target: target LV name.
+            through: explicit mediator chain (e.g. ``["M1", "M2"]``) or
+                ``None`` to enumerate all chains.
+
+        Returns:
+            DataFrame indexed by chain label (e.g. ``"A -> M -> Y"``)
+            with columns ``from``, ``to``, ``via`` (tuple of intermediates),
+            and ``estimate``.
+
+        Raises:
+            ValueError: if ``source == target``, if no indirect chain
+                exists, or if ``through`` references nonexistent edges.
+            KeyError: if ``source`` or ``target`` is not in the model.
+        """
+        path = (self.path_coefficients() != 0).astype(int)
+        return specific_indirect_point(
+            self.path_coefficients(),
+            path,
+            source,
+            target,
+            through=through,
+        )
 
     def unidimensionality(self) -> pd.DataFrame:
         """Gets the results of checking the unidimensionality of blocks (only meaningful for reflective / mode A blocks)

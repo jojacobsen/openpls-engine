@@ -26,6 +26,7 @@ import openpls.config as c
 import openpls.inner_model as im
 import openpls.outer_model as om
 from openpls.estimator import Estimator
+from openpls.specific_indirect import specific_indirect_bootstrap
 from openpls.weights import WeightsCalculatorFactory
 
 
@@ -125,6 +126,11 @@ class Bootstrap:
         self.__total_effects = _create_summary(total_effects, inner_model.effects().loc[:, "total"])
         self.__paths = _create_summary(paths, inner_model.effects().loc[:, "direct"])
         self.__loading = _create_summary(loadings, outer_model.model().loc[:, "loading"])
+        # Retain raw per-iteration direct-path samples so specific indirect
+        # effects can be computed as chain products after the fact.
+        self.__raw_paths = paths.reset_index(drop=True)
+        self.__path_coefficients = inner_model.path_coefficients()
+        self.__structural_path = (self.__path_coefficients != 0).astype(int)
 
     def weights(self) -> pd.DataFrame:
         """Outer weights calculated from bootstrap validation."""
@@ -145,3 +151,48 @@ class Bootstrap:
     def loading(self) -> pd.DataFrame:
         """Loadings of manifest variables calculated from bootstrap validation."""
         return self.__loading
+
+    def specific_indirect_effects(
+        self,
+        source: str,
+        target: str,
+        through: list[str] | None = None,
+        alpha: float = 0.05,
+    ) -> pd.DataFrame:
+        """Specific indirect effects with bootstrap percentile CIs.
+
+        Each row reports one mediation chain ``source -> M1 -> ... -> target``
+        and the per-iteration product of its path coefficients summarised
+        as ``original``, ``mean``, ``std.error``, ``perc.lower``,
+        ``perc.upper`` (at level ``1 - alpha``), and the ``t`` statistic
+        (original / SE).
+
+        Args:
+            source: source LV name.
+            target: target LV name.
+            through: explicit mediator chain (e.g. ``["M1", "M2"]``) to
+                evaluate. If ``None`` (default), every indirect chain
+                from ``source`` to ``target`` in the structural model is
+                returned.
+            alpha: two-sided significance level for the percentile CI
+                (default 0.05 → 95% CI).
+
+        Returns:
+            DataFrame indexed by chain label (e.g. ``"A -> M -> Y"``).
+
+        Raises:
+            ValueError: if ``source == target``, if no indirect chain
+                exists, if ``through`` references nonexistent direct
+                edges, or if ``alpha`` is outside ``(0, 1)``.
+            KeyError: if ``source`` or ``target`` is not a latent
+                variable in the model.
+        """
+        return specific_indirect_bootstrap(
+            self.__raw_paths,
+            self.__path_coefficients,
+            self.__structural_path,
+            source,
+            target,
+            through=through,
+            alpha=alpha,
+        )
