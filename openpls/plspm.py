@@ -27,8 +27,10 @@ from openpls.bootstrap import Bootstrap
 from openpls.copula import GaussianCopula
 from openpls.cta import CTAPLS
 from openpls.estimator import Estimator
+from openpls.f_squared import FSquared
 from openpls.fimix import FIMIX
 from openpls.fit import ModelFit
+from openpls.fornell_larcker import FornellLarcker
 from openpls.higher_order import HigherOrder
 from openpls.htmt import HTMT
 from openpls.htmt2 import HTMT2
@@ -115,6 +117,8 @@ class Plspm:
         self.__vif: VIF | None = None
         self.__plsc: PLSc | None = None
         self.__htmt2: HTMT2 | None = None
+        self.__f_squared: FSquared | None = None
+        self.__fornell_larcker: FornellLarcker | None = None
         self.__bootstrap = None
         if bootstrap:
             if (filtered_data.shape[0] < 10):
@@ -209,6 +213,54 @@ class Plspm:
             a DataFrame with an entry in the index for every path in the model, and a column for direct, indirect, and total effects for the corresponding path.
         """
         return self.__inner_model.effects()
+
+    def f_squared(self) -> FSquared:
+        """Cohen's f² effect size per structural-model edge.
+
+        For every directed edge ``predictor -> endogenous``, refits the
+        OLS for the endogenous LV without the predictor and reports
+        ``f² = (R²_full - R²_reduced) / (1 - R²_full)`` (Cohen 1988;
+        Hair, Hult, Ringle & Sarstedt 2022). Conventional thresholds:
+        ``f² >= 0.02`` small, ``>= 0.15`` medium, ``>= 0.35`` large.
+        Computed lazily on first call and cached.
+
+        Returns:
+            an instance of :class:`.f_squared.FSquared` exposing
+            ``table()`` (long-format with effect-size labels) and
+            ``matrix()`` (square matrix mirroring the path matrix).
+        """
+        if self.__f_squared is None:
+            self.__f_squared = FSquared(
+                self.__config,
+                self.__scores,
+                self.__inner_model.path_coefficients(),
+                self.__inner_model.r_squared(),
+            )
+        return self.__f_squared
+
+    def fornell_larcker(self) -> FornellLarcker:
+        """Fornell-Larcker discriminant-validity criterion (1981).
+
+        Returns a square matrix with ``sqrt(AVE)`` on the diagonal and
+        inter-construct correlations off-diagonal. The criterion holds
+        for a reflective LV when its diagonal entry exceeds every
+        absolute off-diagonal entry in its row. Formative (Mode B) and
+        single-indicator LVs receive ``NaN`` on the diagonal because
+        AVE is undefined for them; for those constructs use HTMT
+        (Henseler, Ringle & Sarstedt 2015) instead. Computed lazily and
+        cached.
+
+        Returns:
+            an instance of :class:`.fornell_larcker.FornellLarcker`
+            exposing ``matrix()``, ``ave()``, and ``summary()``.
+        """
+        if self.__fornell_larcker is None:
+            self.__fornell_larcker = FornellLarcker(
+                self.__config,
+                self.__scores,
+                self.__outer_model.model(),
+            )
+        return self.__fornell_larcker
 
     def unidimensionality(self) -> pd.DataFrame:
         """Gets the results of checking the unidimensionality of blocks (only meaningful for reflective / mode A blocks)
