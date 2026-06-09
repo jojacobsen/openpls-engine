@@ -30,6 +30,7 @@ from openpls.fimix import FIMIX
 from openpls.fit import ModelFit
 from openpls.htmt import HTMT
 from openpls.ipma import IPMA
+from openpls.plsc import PLSc
 from openpls.predict import PLSPredict
 from openpls.q_squared import QSquared
 from openpls.scheme import Scheme
@@ -109,6 +110,7 @@ class Plspm:
         self.__scheme = scheme
         self.__q_squared: QSquared | None = None
         self.__vif: VIF | None = None
+        self.__plsc: PLSc | None = None
         self.__bootstrap = None
         if bootstrap:
             if (filtered_data.shape[0] < 10):
@@ -285,6 +287,27 @@ class Plspm:
         if self.__vif is None:
             self.__vif = VIF(self.__config, self.__data, self.__scores)
         return self.__vif
+
+    def plsc(self) -> PLSc:
+        """Consistent PLS (Dijkstra & Henseler 2015).
+
+        Corrects path coefficients, loadings, and R² for measurement-error
+        attenuation in reflective (Mode A) constructs. Computed lazily on
+        first call and cached.
+
+        Returns:
+            an instance of :class:`.plsc.PLSc` exposing ``rho_a()``,
+            ``path_coefficients()``, ``r_squared()``, ``loadings()``, and
+            ``summary()``.
+        """
+        if self.__plsc is None:
+            self.__plsc = PLSc(
+                self.__config,
+                self.__data,
+                self.__scores,
+                self.__outer_model.model(),
+            )
+        return self.__plsc
 
     def ipma(
         self,

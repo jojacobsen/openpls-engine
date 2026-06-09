@@ -18,8 +18,10 @@ d_ULS, adjusted R², BIC, Stone-Geisser Q², Cronbach α, Dijkstra-Henseler ρ,
 VIF (per-indicator and per-predictor), CTA-PLS (confirmatory tetrad
 analysis for reflective measurement), multi-group analysis, and a
 progress-streaming long bootstrap. It also ships
-**advanced** analyses that go beyond what `plspm-python` covers: PLSpredict
-out-of-sample validation, IPMA (Importance-Performance Map Analysis),
+**advanced** analyses that go beyond what `plspm-python` covers: PLSc
+(consistent PLS, Dijkstra & Henseler 2015) for measurement-error
+attenuation correction in reflective models, PLSpredict out-of-sample
+validation, IPMA (Importance-Performance Map Analysis),
 two-stage moderation, FIMIX-PLS finite-mixture segmentation, and a
 **quasi-Newton (BFGS) inner-weighting scheme** and a **Lohmöller PCA
 scheme**, two new alternatives to the classical centroid, factorial, and
@@ -42,7 +44,7 @@ Hosted docs at [**openpls.app/engine**](https://openpls.app/engine):
 - [Installation](https://openpls.app/engine/installation/) - pip and source installs.
 - [Quickstart](https://openpls.app/engine/quickstart/) - end-to-end fit on the satisfaction dataset.
 - [Core concepts](https://openpls.app/engine/concepts/) - PLS-SEM, Mode A/B, inner-weighting schemes, missing-value strategies.
-- [API reference](https://openpls.app/engine/api/) - the full public surface (Plspm, Config, VIF, CTAPLS, IPMA, PLSpredict, Moderation, FIMIX, MGA, LongBootstrap).
+- [API reference](https://openpls.app/engine/api/) - the full public surface (Plspm, Config, VIF, CTAPLS, PLSc, IPMA, PLSpredict, Moderation, FIMIX, MGA, LongBootstrap).
 - [Examples](https://openpls.app/engine/examples/) - runnable snippets for each advanced analysis.
 - [Changelog](https://openpls.app/engine/changelog/) - version history with per-feature notes.
 
