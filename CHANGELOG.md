@@ -11,6 +11,12 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-09
+
+Disjoint two-stage higher-order constructs as a first-class API. The
+existing legacy `Config.add_higher_order` stays untouched, so this is a
+minor bump.
+
 ### Added
 - **Disjoint two-stage higher-order constructs (HOC)** via
   `Plspm.higher_order()` → `openpls.higher_order.HigherOrder`. Implements
