@@ -37,8 +37,7 @@ application) and the CLI / Docker self-host distribution planned for the next
 phase of the roadmap.
 
 > **Status: stable as of 1.0.0.** Public API (Plspm, Config, Mode, Scheme,
-> IPMA, PLSpredict, Moderation, FIMIX) follows semver. Numerical alignment
-> with reference implementations is tracked in [TODO.md](TODO.md). See
+> IPMA, PLSpredict, Moderation, FIMIX) follows semver. See
 > [CHANGELOG.md](CHANGELOG.md) for the version history.
 
 ## Recent additions

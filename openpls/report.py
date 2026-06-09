@@ -49,7 +49,7 @@ class Report:
     panels. :meth:`to_dict` bundles everything for export.
     """
 
-    def __init__(self, plspm: "Plspm", include_rho_a: bool = True, include_htmt2: bool = True):
+    def __init__(self, plspm: Plspm, include_rho_a: bool = True, include_htmt2: bool = True):
         self._plspm = plspm
         self._include_rho_a = include_rho_a
         self._include_htmt2 = include_htmt2
