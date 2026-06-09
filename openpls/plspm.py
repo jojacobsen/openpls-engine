@@ -38,6 +38,7 @@ from openpls.ipma import IPMA
 from openpls.plsc import PLSc
 from openpls.predict import PLSPredict
 from openpls.q_squared import QSquared
+from openpls.report import Report
 from openpls.scheme import Scheme
 from openpls.unidimensionality import Unidimensionality
 from openpls.vif import VIF
@@ -261,6 +262,30 @@ class Plspm:
                 self.__outer_model.model(),
             )
         return self.__fornell_larcker
+
+    def report(self, include_rho_a: bool = True, include_htmt2: bool = True) -> Report:
+        """Publication-ready summary report bundling the standard PLS-SEM panels.
+
+        Aggregates reliability (Cronbach alpha, rho_A, rho_C, AVE),
+        discriminant validity (HTMT, optional HTMT2, Fornell-Larcker),
+        structural paths with Cohen's f² and effect-size labels,
+        per-LV R² / adjusted R² / BIC, fit indices (SRMR, d_ULS, GoF),
+        and collinearity (outer + inner VIF) into one object. Use
+        :meth:`.report.Report.to_dict` to bundle every section for
+        export (e.g. JSON). Underlying values come from the existing
+        lazy-cached methods on this class, so calling ``report()``
+        multiple times is cheap.
+
+        Args:
+            include_rho_a: include the Dijkstra-Henseler rho_A column in
+                the reliability table (computed via PLSc). Default True.
+            include_htmt2: include the HTMT2 (geometric-mean) matrix in
+                the discriminant-validity panel. Default True.
+
+        Returns:
+            a :class:`.report.Report` instance.
+        """
+        return Report(self, include_rho_a=include_rho_a, include_htmt2=include_htmt2)
 
     def unidimensionality(self) -> pd.DataFrame:
         """Gets the results of checking the unidimensionality of blocks (only meaningful for reflective / mode A blocks)
