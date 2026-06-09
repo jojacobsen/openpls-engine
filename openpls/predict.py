@@ -22,9 +22,15 @@ PLS model trained on the remaining folds and compares prediction error
 against a linear-regression (LM) benchmark trained on the same predecessor
 indicators.
 
-Reports per-indicator RMSE and MAE for both PLS and LM, plus Q²_predict
-(1 - SSE_pls / SSE_indicator_average), where the indicator average is the
-train-fold mean (Shmueli's naive baseline).
+Reports per-indicator RMSE, MAE, and MAPE (mean absolute percentage error
+as a proportion, ``mean(|err / actual|)``, matching sklearn's convention)
+for both PLS and LM, plus Q²_predict (``1 - SSE_pls / SSE_indicator_average``)
+where the indicator average is the train-fold mean (Shmueli's naive
+baseline). Each metric is reported in two variants:
+
+- ``*_pls`` / ``*_lm`` — **out-of-sample** k-fold CV error.
+- ``*_pls_in`` / ``*_lm_in`` — **in-sample** error from a single fit on
+  all available rows (Shmueli et al. 2019, Table 6 panel A).
 
 A negative Q²_predict means the PLS model does worse than just predicting
 the training mean. PLS < LM RMSE on an indicator means PLS has predictive
@@ -90,9 +96,21 @@ class PLSPredict:
         """Per-indicator prediction metrics.
 
         Indexed by ``(lv, indicator)``. Columns:
-          - ``rmse_pls``, ``mae_pls``: PLS prediction error.
-          - ``rmse_lm``, ``mae_lm``: LM benchmark prediction error.
-          - ``q2_predict``: 1 - SSE_pls / SSE_indicator_average.
+
+        Out-of-sample (k-fold CV):
+          - ``rmse_pls``, ``mae_pls``, ``mape_pls``: PLS prediction error.
+          - ``rmse_lm``, ``mae_lm``, ``mape_lm``: LM benchmark prediction
+            error.
+          - ``q2_predict``: ``1 - SSE_pls / SSE_indicator_average`` (the
+            naive train-mean baseline).
+
+        In-sample (single fit on the full data):
+          - ``rmse_pls_in``, ``mae_pls_in``, ``mape_pls_in``: PLS error.
+          - ``rmse_lm_in``, ``mae_lm_in``, ``mape_lm_in``: LM error.
+
+        MAPE is the proportion ``mean(|err / actual|)``; rows where the
+        actual value is zero are excluded from MAPE only (the other
+        metrics still see them).
         """
         if self.__metrics is None:
             self.__metrics = self.__compute()
@@ -185,6 +203,105 @@ class PLSPredict:
                 scores[lv] = acc
         return scores
 
+    def __compute_in_sample(
+        self,
+        endo_inds: list[tuple[str, str]],
+        path: pd.DataFrame,
+    ) -> pd.DataFrame:
+        """In-sample PLS and LM errors from a single fit on the full data."""
+        from openpls.plspm import Plspm  # local import to avoid circular dependency
+
+        rows: list[dict] = []
+        try:
+            fit = Plspm(self.__data, self.__config, self.__scheme)
+        except Exception:
+            for lv, ind in endo_inds:
+                rows.append({
+                    "lv": lv, "indicator": ind,
+                    "rmse_pls_in": float("nan"), "mae_pls_in": float("nan"),
+                    "mape_pls_in": float("nan"),
+                    "rmse_lm_in": float("nan"), "mae_lm_in": float("nan"),
+                    "mape_lm_in": float("nan"),
+                })
+            return pd.DataFrame(rows).set_index(["lv", "indicator"])
+
+        outer = fit.outer_model()
+        scores = fit.scores()
+
+        for lv, ind in endo_inds:
+            row = {
+                "lv": lv, "indicator": ind,
+                "rmse_pls_in": float("nan"), "mae_pls_in": float("nan"),
+                "mape_pls_in": float("nan"),
+                "rmse_lm_in": float("nan"), "mae_lm_in": float("nan"),
+                "mape_lm_in": float("nan"),
+            }
+            if ind not in outer.index:
+                rows.append(row)
+                continue
+            try:
+                loading = float(outer.loc[ind, "loading"])
+            except (KeyError, TypeError, ValueError):
+                rows.append(row)
+                continue
+            col = self.__data[ind].to_numpy(dtype=float)
+            mean = float(np.nanmean(col))
+            sd = float(np.nanstd(col, ddof=0))
+            if not math.isfinite(mean) or sd == 0:
+                rows.append(row)
+                continue
+
+            actual = col
+            lv_score = scores.loc[:, lv].to_numpy(dtype=float)
+            pls_pred = mean + sd * loading * lv_score
+
+            preds_lv = [p for p in path.columns if path.loc[lv, p] == 1]
+            feature_cols: list[str] = []
+            for p in preds_lv:
+                for i in self.__config.mvs(p):
+                    if i in self.__data.columns and i not in feature_cols:
+                        feature_cols.append(i)
+            if not feature_cols:
+                lm_pred = np.full(len(self.__data), mean)
+            else:
+                X = self.__data[feature_cols].to_numpy(dtype=float)
+                y = col
+                valid_train = ~np.isnan(X).any(axis=1) & ~np.isnan(y)
+                if valid_train.sum() <= len(feature_cols) + 1:
+                    lm_pred = np.full(len(self.__data), mean)
+                else:
+                    X_c = sm.add_constant(X[valid_train], has_constant="add")
+                    try:
+                        lm = sm.OLS(y[valid_train], X_c).fit()
+                        X_all = sm.add_constant(X, has_constant="add")
+                        lm_pred = X_all @ lm.params
+                    except Exception:
+                        lm_pred = np.full(len(self.__data), mean)
+
+            valid = ~np.isnan(actual) & ~np.isnan(pls_pred) & ~np.isnan(lm_pred)
+            if not valid.any():
+                rows.append(row)
+                continue
+            actual_v = actual[valid]
+            pls_err = actual_v - pls_pred[valid]
+            lm_err = actual_v - lm_pred[valid]
+            n = int(valid.sum())
+            row["rmse_pls_in"] = math.sqrt(float(np.sum(pls_err**2)) / n)
+            row["mae_pls_in"] = float(np.sum(np.abs(pls_err))) / n
+            row["rmse_lm_in"] = math.sqrt(float(np.sum(lm_err**2)) / n)
+            row["mae_lm_in"] = float(np.sum(np.abs(lm_err))) / n
+            nonzero = np.abs(actual_v) > 1e-12
+            if nonzero.any():
+                row["mape_pls_in"] = float(
+                    np.mean(np.abs(pls_err[nonzero]) / np.abs(actual_v[nonzero]))
+                )
+                row["mape_lm_in"] = float(
+                    np.mean(np.abs(lm_err[nonzero]) / np.abs(actual_v[nonzero]))
+                )
+            rows.append(row)
+
+        return pd.DataFrame(rows).set_index(["lv", "indicator"])
+
     def __compute(self) -> pd.DataFrame:
         from openpls.plspm import Plspm  # local import to avoid circular dependency
 
@@ -199,6 +316,10 @@ class PLSPredict:
         lm_abs = {ind: 0.0 for _, ind in endo_inds}
         ia_sq = {ind: 0.0 for _, ind in endo_inds}
         counts = {ind: 0 for _, ind in endo_inds}
+        # MAPE accumulators (rows with actual == 0 are excluded here only).
+        pls_pct = {ind: 0.0 for _, ind in endo_inds}
+        lm_pct = {ind: 0.0 for _, ind in endo_inds}
+        pct_counts = {ind: 0 for _, ind in endo_inds}
 
         for r in range(self.__repeats):
             seed = (self.__seed + r) if self.__seed is not None else None
@@ -263,19 +384,26 @@ class PLSPredict:
                     valid = ~np.isnan(actual) & ~np.isnan(pls_pred) & ~np.isnan(lm_pred)
                     if not valid.any():
                         continue
-                    pls_err = actual[valid] - pls_pred[valid]
-                    lm_err = actual[valid] - lm_pred[valid]
-                    ia_err = actual[valid] - train_mean
+                    actual_v = actual[valid]
+                    pls_err = actual_v - pls_pred[valid]
+                    lm_err = actual_v - lm_pred[valid]
+                    ia_err = actual_v - train_mean
                     pls_sq[ind] += float(np.sum(pls_err**2))
                     pls_abs[ind] += float(np.sum(np.abs(pls_err)))
                     lm_sq[ind] += float(np.sum(lm_err**2))
                     lm_abs[ind] += float(np.sum(np.abs(lm_err)))
                     ia_sq[ind] += float(np.sum(ia_err**2))
                     counts[ind] += int(valid.sum())
+                    nonzero = np.abs(actual_v) > 1e-12
+                    if nonzero.any():
+                        pls_pct[ind] += float(np.sum(np.abs(pls_err[nonzero]) / np.abs(actual_v[nonzero])))
+                        lm_pct[ind] += float(np.sum(np.abs(lm_err[nonzero]) / np.abs(actual_v[nonzero])))
+                        pct_counts[ind] += int(nonzero.sum())
 
         rows: list[dict] = []
         for lv, ind in endo_inds:
             c = counts[ind]
+            mape_c = pct_counts[ind]
             if c == 0:
                 rows.append(
                     {
@@ -283,9 +411,11 @@ class PLSPredict:
                         "indicator": ind,
                         "rmse_pls": float("nan"),
                         "mae_pls": float("nan"),
+                        "mape_pls": float("nan"),
                         "q2_predict": float("nan"),
                         "rmse_lm": float("nan"),
                         "mae_lm": float("nan"),
+                        "mape_lm": float("nan"),
                     }
                 )
                 continue
@@ -293,6 +423,8 @@ class PLSPredict:
             mae_pls = pls_abs[ind] / c
             rmse_lm = math.sqrt(lm_sq[ind] / c)
             mae_lm = lm_abs[ind] / c
+            mape_pls = (pls_pct[ind] / mape_c) if mape_c > 0 else float("nan")
+            mape_lm = (lm_pct[ind] / mape_c) if mape_c > 0 else float("nan")
             q2 = (
                 1.0 - pls_sq[ind] / ia_sq[ind]
                 if ia_sq[ind] > 0
@@ -304,9 +436,13 @@ class PLSPredict:
                     "indicator": ind,
                     "rmse_pls": rmse_pls,
                     "mae_pls": mae_pls,
+                    "mape_pls": mape_pls,
                     "q2_predict": q2,
                     "rmse_lm": rmse_lm,
                     "mae_lm": mae_lm,
+                    "mape_lm": mape_lm,
                 }
             )
-        return pd.DataFrame(rows).set_index(["lv", "indicator"])
+        out = pd.DataFrame(rows).set_index(["lv", "indicator"])
+        in_sample = self.__compute_in_sample(endo_inds, path)
+        return out.join(in_sample, how="left")
