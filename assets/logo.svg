@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 156 64" width="156" height="64" role="img" aria-label="openpls-engine">
+  <title>openpls-engine</title>
+  <!-- exogenous LV -->
+  <circle cx="22" cy="32" r="16" fill="none" stroke="#3B82F6" stroke-width="4"/>
+  <!-- path -->
+  <polygon points="42,22 42,42 58,32" fill="#3B82F6"/>
+  <!-- mediating LV -->
+  <circle cx="78" cy="32" r="16" fill="none" stroke="#3B82F6" stroke-width="4"/>
+  <!-- path -->
+  <polygon points="98,22 98,42 114,32" fill="#3B82F6"/>
+  <!-- computed endogenous LV (the engine's payoff) -->
+  <circle cx="134" cy="32" r="16" fill="#3B82F6"/>
+</svg>
