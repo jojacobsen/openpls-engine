@@ -24,6 +24,7 @@ import openpls.inner_summary as pis
 import openpls.outer_model as om
 import openpls.weights as w
 from openpls.bootstrap import Bootstrap
+from openpls.copula import GaussianCopula
 from openpls.cta import CTAPLS
 from openpls.estimator import Estimator
 from openpls.fimix import FIMIX
@@ -390,6 +391,49 @@ class Plspm:
             self.__data,
             n_boot=n_boot,
             alpha=alpha,
+            seed=seed,
+        )
+
+    def copula(
+        self,
+        endogenous: str,
+        suspected: list[str] | None = None,
+        n_boot: int = 500,
+        seed: int | None = 42,
+    ) -> GaussianCopula:
+        """Gaussian-copula endogeneity test (Park & Gupta 2012;
+        Hult, Hair, Proksch, Sarstedt, Pinkwart & Ringle 2018).
+
+        For the structural equation of ``endogenous``, augments each
+        suspected predecessor LV with a copula term
+        ``P_k = Phi^{-1}(F_n(X_k))`` and tests its OLS coefficient by
+        non-parametric bootstrap. A significant copula coefficient
+        indicates endogeneity in that predictor.
+
+        Args:
+            endogenous: name of the endogenous LV whose structural
+                equation is tested.
+            suspected: predecessor LVs to augment with a copula term. If
+                ``None``, all predecessors are tested.
+            n_boot: number of bootstrap resamples (default 500, must be
+                >= 50).
+            seed: RNG seed for the bootstrap. ``None`` for
+                non-deterministic.
+
+        Returns:
+            a :class:`.copula.GaussianCopula` instance. Call
+            ``coefficients()`` for the per-predictor diagnostics,
+            ``augmented_paths()`` for the endogeneity-corrected
+            structural estimates, and ``summary()`` for a
+            per-predictor verdict (including a Cramér-von Mises
+            admissibility check).
+        """
+        return GaussianCopula(
+            self.__config,
+            self.__scores,
+            endogenous,
+            suspected=suspected,
+            n_boot=n_boot,
             seed=seed,
         )
 

@@ -12,6 +12,17 @@ package and publishes it to PyPI via OIDC trusted publishing.
 ## [Unreleased]
 
 ### Added
+- **Gaussian-copula endogeneity test** via `Plspm.copula()` →
+  `openpls.copula.GaussianCopula`. Park & Gupta (2012) / Hult, Hair,
+  Proksch, Sarstedt, Pinkwart & Ringle (2018) procedure for detecting
+  endogeneity in PLS-SEM structural equations. Augments each suspected
+  predecessor LV with a copula term `P = Phi^{-1}(F_n(X))`, refits the
+  endogenous LV's regression by OLS, and tests each copula coefficient
+  via a non-parametric row bootstrap (same SE / t / p convention as
+  `LongBootstrap`). Each suspected predictor is screened with a
+  Cramér-von Mises normality test for admissibility; the `summary()`
+  marks normal predictors as `copula not admissible (normal)` because
+  the test cannot tell endogeneity from a Gaussian regressor.
 - **HTMT2** via `Plspm.htmt2()` → `openpls.htmt2.HTMT2`. Geometric-mean
   refinement of the Heterotrait-Monotrait Ratio of Correlations
   (Roemer, Schuberth & Henseler 2021). Replaces both arithmetic means
