@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="openpls-engine" width="220">
+  <img src="assets/logo.svg" alt="openpls engine" width="320">
 </p>
-
-<h1 align="center">openpls-engine</h1>
 
 <p align="center">
   <strong>A modern, maintained Python engine for Partial Least Squares Structural Equation Modeling (PLS-SEM).</strong>
