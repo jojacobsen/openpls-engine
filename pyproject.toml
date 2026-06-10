@@ -75,7 +75,10 @@ filterwarnings = [
 
 [tool.coverage.run]
 source = ["openpls"]
-branch = true
+# Line coverage only; the Codecov badge displays line coverage and
+# treats partial branches as misses, so branch tracking only adds
+# misleading noise.
+branch = false
 
 [tool.coverage.report]
 exclude_lines = [
