@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/jojacobsen/openpls-engine/actions/workflows/ci.yml"><img src="https://github.com/jojacobsen/openpls-engine/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://codecov.io/gh/jojacobsen/openpls-engine"><img src="https://codecov.io/gh/jojacobsen/openpls-engine/branch/main/graph/badge.svg" alt="Coverage"></a>
   <a href="https://pypi.org/project/openpls-engine/"><img src="https://img.shields.io/pypi/v/openpls-engine.svg" alt="PyPI version"></a>
   <a href="https://pypi.org/project/openpls-engine/"><img src="https://img.shields.io/pypi/pyversions/openpls-engine.svg" alt="Python versions"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPLv3+-blue.svg" alt="License: GPL-3.0-or-later"></a>
