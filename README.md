@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="openpls engine" width="320">
+  <img src="https://raw.githubusercontent.com/jojacobsen/openpls-engine/main/assets/logo.svg" alt="openpls engine" width="320">
 </p>
 
 <p align="center">
