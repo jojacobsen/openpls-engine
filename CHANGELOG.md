@@ -11,6 +11,37 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-06-10
+
+Adds the canonical pre-MGA measurement-invariance check so engine users can
+verify that composite constructs are comparable across two groups before
+interpreting group differences. Single additive feature, no existing
+behaviour changes.
+
+### Added
+- **MICOM — Measurement Invariance of Composite Models**
+  (Henseler, Ringle & Sarstedt 2016) via `Plspm.micom()` →
+  `openpls.micom.MICOM`. Runs the three-step procedure:
+  - **Step 1 — Configural invariance:** guaranteed by reusing one
+    `Config` across both groups (audit trail via `MICOM.group_sizes()`).
+  - **Step 2 — Compositional invariance:** per construct, the correlation
+    `c = w_A' Σ w_B / sqrt((w_A' Σ w_A)(w_B' Σ w_B))` between group-A and
+    group-B weights evaluated on the pooled indicator covariance, tested
+    against `c = 1` with a one-sided lower-tail permutation test. Sign
+    indeterminacy is handled by aligning each permutation's weight
+    direction before computing `c`.
+  - **Step 3 — Equality of composite means and variances:** pooled-fit
+    weights applied to standardized indicators produce common-scale
+    composite scores; mean differences and `log(var_A / var_B)` are then
+    tested with two-sided label-shuffling permutations (no PLS refit per
+    iteration, so this step is cheap).
+  - `MICOM.summary()` collapses the three steps into a per-construct
+    verdict: `"full"` (Step 2 + Step 3 pass), `"partial"` (Step 2 passes
+    but mean or variance differs), or `"none"` (Step 2 fails — composites
+    are not comparable and MGA results would be uninterpretable).
+  Closes a longstanding gap: prior releases supported MGA but provided no
+  in-engine way to verify the invariance prerequisite MGA assumes.
+
 ## [1.4.0] - 2026-06-09
 
 Four seminr-aligned additions covering structural effect sizes,

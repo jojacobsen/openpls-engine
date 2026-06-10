@@ -35,6 +35,8 @@ from openpls.higher_order import HigherOrder
 from openpls.htmt import HTMT
 from openpls.htmt2 import HTMT2
 from openpls.ipma import IPMA
+from openpls.mga import GroupSpec
+from openpls.micom import MICOM
 from openpls.plsc import PLSc
 from openpls.predict import PLSPredict
 from openpls.q_squared import QSquared
@@ -648,6 +650,55 @@ class Plspm:
             iterations=iterations,
             tolerance=tolerance,
             missing_strategy=missing_strategy,
+        )
+
+    def micom(
+        self,
+        data: pd.DataFrame,
+        grouping_column: str,
+        group_a: GroupSpec,
+        group_b: GroupSpec,
+        iterations: int = 1000,
+        seed: int | None = 42,
+    ) -> MICOM:
+        """Measurement Invariance of Composite Models (Henseler, Ringle & Sarstedt 2016).
+
+        Three-step assessment that must be completed before comparing
+        composite scores across two groups (e.g. before MGA or moderation):
+
+        - **Step 1** Configural invariance: same indicators, same data
+          treatment, same algorithm settings (always satisfied here by
+          reusing this fit's :class:`~openpls.config.Config`).
+        - **Step 2** Compositional invariance: per-construct correlation
+          ``c`` between group-A and group-B composite weights, tested
+          against ``c = 1`` via permutation.
+        - **Step 3** Equality of composite means and variances: tested
+          via permutation on pooled-weight composite scores.
+
+        Args:
+            data: full dataset including the grouping column (the
+                grouping column is not required to be part of the model).
+            grouping_column: name of the column in ``data`` that
+                distinguishes the two groups.
+            group_a, group_b: :class:`~openpls.mga.GroupSpec` describing
+                each subset (by categorical ``values`` or numeric ``range``).
+            iterations: number of permutation iterations for Steps 2 and 3
+                (default 1000).
+            seed: RNG seed. Pass ``None`` for non-deterministic.
+
+        Returns:
+            a :class:`~openpls.micom.MICOM` instance exposing ``step2()``,
+            ``step3()`` and ``summary()`` per construct.
+        """
+        return MICOM(
+            data,
+            self.__config,
+            grouping_column=grouping_column,
+            group_a=group_a,
+            group_b=group_b,
+            scheme=self.__scheme,
+            iterations=iterations,
+            seed=seed,
         )
 
     def bootstrap(self) -> Bootstrap:

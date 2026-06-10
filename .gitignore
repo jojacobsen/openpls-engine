@@ -9,6 +9,8 @@ dist/
 .mypy_cache/
 .ruff_cache/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
 test-results/
 
