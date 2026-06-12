@@ -11,6 +11,25 @@ package and publishes it to PyPI via OIDC trusted publishing.
 
 ## [Unreleased]
 
+### Added
+- **Unified bootstrap inference tables** on `LongBootstrap` via the new
+  `inference` property. Returns a dict keyed by `pathCoefficients`,
+  `outerLoadings`, `outerWeights`, `specificIndirectEffects`,
+  `totalIndirectEffects`, and `totalEffects`. Each DataFrame carries the
+  canonical inference columns `original`, `mean`, `std_error`, `t_value`,
+  `p_value`, `ci_percentile_2_5`, `ci_percentile_97_5`, `ci_bc_2_5`,
+  `ci_bc_97_5`. The bias-corrected CI uses the Efron (1987) z₀ formula and
+  the p-value is computed from the two-sided recentred bootstrap
+  distribution (Davison & Hinkley 1997 §4.4). Resamples remain accessible
+  via the new `resamples`, `path_keys`, `outer_keys`, and `lv_names`
+  properties for downstream analyses (MGA, custom tests).
+
+### Changed
+- `LongBootstrap.paths()/loadings()/weights()/total_effects()` now expose
+  both percentile and bias-corrected CI columns alongside the existing
+  `ci_lower`/`ci_upper` (which continue to hold the BC bounds for
+  backwards compatibility).
+
 ## [1.5.0] - 2026-06-10
 
 Adds the canonical pre-MGA measurement-invariance check so engine users can

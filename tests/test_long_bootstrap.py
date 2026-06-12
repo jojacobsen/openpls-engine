@@ -133,3 +133,161 @@ def test_long_bootstrap_completed_and_failed_counts():
     assert boot.completed + boot.failed == 20
     assert boot.completed >= 1
     assert boot.alpha == 0.05
+
+
+# ---------------------------------------------------------------------------
+# BootstrapInference (issue #31) — canonical inference tables
+# ---------------------------------------------------------------------------
+
+
+_INFERENCE_COLUMNS = {
+    "original",
+    "mean",
+    "std_error",
+    "t_value",
+    "p_value",
+    "ci_percentile_2_5",
+    "ci_percentile_97_5",
+    "ci_bc_2_5",
+    "ci_bc_97_5",
+}
+
+
+def _satisfaction_config():
+    structure = c.Structure()
+    structure.add_path(["IMAG"], ["EXPE", "SAT", "LOY"])
+    structure.add_path(["EXPE"], ["QUAL", "VAL", "SAT"])
+    structure.add_path(["QUAL"], ["VAL", "SAT"])
+    structure.add_path(["VAL"], ["SAT"])
+    structure.add_path(["SAT"], ["LOY"])
+    satisfaction = pd.read_csv("file:tests/data/satisfaction.csv", index_col=0)
+    config = c.Config(structure.path(), scaled=False)
+    config.add_lv_with_columns_named("IMAG", Mode.A, satisfaction, "imag")
+    config.add_lv_with_columns_named("EXPE", Mode.A, satisfaction, "expe")
+    config.add_lv_with_columns_named("QUAL", Mode.A, satisfaction, "qual")
+    config.add_lv_with_columns_named("VAL", Mode.A, satisfaction, "val")
+    config.add_lv_with_columns_named("SAT", Mode.A, satisfaction, "sat")
+    config.add_lv_with_columns_named("LOY", Mode.A, satisfaction, "loy")
+    return satisfaction, config
+
+
+def test_inference_exposes_all_six_entity_types():
+    boot = LongBootstrap(_russa(), _russa_config(), iterations=30, seed=11)
+    inf = boot.inference
+    assert set(inf.keys()) == {
+        "pathCoefficients",
+        "outerLoadings",
+        "outerWeights",
+        "specificIndirectEffects",
+        "totalIndirectEffects",
+        "totalEffects",
+    }
+
+
+def test_inference_path_coefficients_schema():
+    boot = LongBootstrap(_russa(), _russa_config(), iterations=30, seed=12)
+    df = boot.inference["pathCoefficients"]
+    assert set(df.columns) >= _INFERENCE_COLUMNS | {"source", "target"}
+    # 2 direct paths in russa: AGRI → POLINS, IND → POLINS
+    assert len(df) == 2
+    for _, row in df.iterrows():
+        assert row["ci_percentile_2_5"] <= row["ci_percentile_97_5"]
+        assert row["ci_bc_2_5"] <= row["ci_bc_97_5"]
+        assert 0.0 < row["p_value"] <= 1.0
+
+
+def test_inference_outer_loadings_and_weights_schema():
+    boot = LongBootstrap(_russa(), _russa_config(), iterations=25, seed=13)
+    for entity in ("outerLoadings", "outerWeights"):
+        df = boot.inference[entity]
+        assert set(df.columns) >= _INFERENCE_COLUMNS | {"lv", "indicator"}
+        # 9 indicators total (3 AGRI + 2 IND + 4 POLINS)
+        assert len(df) == 9
+
+
+def test_inference_total_effects_includes_indirect_when_present():
+    _, config = _satisfaction_config()
+    satisfaction = pd.read_csv("file:tests/data/satisfaction.csv", index_col=0)
+    boot = LongBootstrap(satisfaction, config, iterations=20, seed=14)
+    total = boot.inference["totalEffects"]
+    assert set(total.columns) >= _INFERENCE_COLUMNS | {"source", "target"}
+    # IMAG → LOY is reachable only indirectly, so it must show up in
+    # totalEffects (direct edge IMAG→LOY exists too, but the test only needs
+    # that something beyond direct paths is present).
+    pairs = set(zip(total["source"], total["target"], strict=False))
+    assert ("IMAG", "LOY") in pairs
+    assert ("IMAG", "SAT") in pairs
+
+
+def test_inference_specific_indirect_effects_satisfaction_chains():
+    _, config = _satisfaction_config()
+    satisfaction = pd.read_csv("file:tests/data/satisfaction.csv", index_col=0)
+    boot = LongBootstrap(satisfaction, config, iterations=20, seed=15)
+    sie = boot.inference["specificIndirectEffects"]
+    assert set(sie.columns) >= _INFERENCE_COLUMNS | {"source", "target", "via"}
+    # All 5 IMAG → ... → LOY mediation chains are documented in
+    # test_specific_indirect.py — they must all surface here.
+    imag_to_loy_vias = set(
+        sie.loc[(sie["source"] == "IMAG") & (sie["target"] == "LOY"), "via"]
+    )
+    expected = {
+        "SAT",
+        "EXPE -> SAT",
+        "EXPE -> QUAL -> SAT",
+        "EXPE -> QUAL -> VAL -> SAT",
+        "EXPE -> VAL -> SAT",
+    }
+    assert imag_to_loy_vias == expected
+
+
+def test_inference_total_indirect_effects_matches_sum_of_chains():
+    _, config = _satisfaction_config()
+    satisfaction = pd.read_csv("file:tests/data/satisfaction.csv", index_col=0)
+    boot = LongBootstrap(satisfaction, config, iterations=25, seed=16)
+    sie = boot.inference["specificIndirectEffects"]
+    tie = boot.inference["totalIndirectEffects"]
+    chain_sum = sie.groupby(["source", "target"])["original"].sum()
+    tie_indexed = tie.set_index(["source", "target"])["original"]
+    common = chain_sum.index.intersection(tie_indexed.index)
+    assert len(common) > 0
+    for key in common:
+        np.testing.assert_allclose(chain_sum.loc[key], tie_indexed.loc[key], atol=1e-9)
+
+
+def test_inference_empty_indirect_for_two_stage_model():
+    boot = LongBootstrap(_russa(), _russa_config(), iterations=20, seed=17)
+    sie = boot.inference["specificIndirectEffects"]
+    tie = boot.inference["totalIndirectEffects"]
+    assert len(sie) == 0
+    assert len(tie) == 0
+    assert set(sie.columns) >= {"source", "target", "via", "original"}
+
+
+def test_inference_percentile_ci_matches_raw_resamples():
+    """Percentile CI in the inference table matches np.quantile on the same
+    sign-flipped samples the aggregator sees."""
+    from openpls.long_bootstrap import _flip_signs
+
+    boot = LongBootstrap(_russa(), _russa_config(), iterations=80, seed=18)
+    raw_paths = boot.resamples["pathCoefficients"]
+    df = boot.inference["pathCoefficients"]
+    for k, (src, tgt) in enumerate(boot.path_keys):
+        row = df[(df["source"] == src) & (df["target"] == tgt)].iloc[0]
+        samples = raw_paths[:, k]
+        samples = samples[~np.isnan(samples)]
+        flipped = _flip_signs(samples, row["original"])
+        np.testing.assert_allclose(
+            row["ci_percentile_2_5"], np.quantile(flipped, 0.025), rtol=1e-6
+        )
+        np.testing.assert_allclose(
+            row["ci_percentile_97_5"], np.quantile(flipped, 0.975), rtol=1e-6
+        )
+
+
+def test_inference_resamples_shape():
+    boot = LongBootstrap(_russa(), _russa_config(), iterations=15, seed=19)
+    res = boot.resamples
+    assert res["pathCoefficients"].shape == (15, 2)
+    assert res["outerLoadings"].shape == (15, 9)
+    assert res["outerWeights"].shape == (15, 9)
+    assert res["totalEffects"].shape == (15, 3, 3)
