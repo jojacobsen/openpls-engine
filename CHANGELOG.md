@@ -51,6 +51,28 @@ package and publishes it to PyPI via OIDC trusted publishing.
     uses only the exogenous LVs at the top of the structural DAG, per the
     Shmueli/Hair/Ringle 2019 PLSpredict convention. The PLS-side
     predictions are unaffected; only the LM benchmark moves.
+- `PLSc` now exposes the full disattenuated reflective-LV quality panel,
+  closing the gap that previously mixed PLSc paths/loadings with
+  PLS-SEM AVE/ρ_c/SRMR/BIC/HTMT/VIF (Dijkstra & Henseler 2015):
+  - `PLSc.ave()` — Average Variance Extracted on the PLSc loadings,
+    `λ_c = w · sqrt(rho_A) / (w'w)`.
+  - `PLSc.rho_c()` — Jöreskog's composite reliability evaluated on the
+    PLSc loadings.
+  - `PLSc.htmt()` — disattenuated construct-correlation magnitude
+    (consistent estimator of the latent correlation under congeneric
+    reflective measurement; same 0.85 / 0.90 thresholds as HTMT).
+  - `PLSc.srmr()` / `PLSc.d_uls()` — saturated-model fit on the PLSc
+    implied indicator correlation matrix `Σ̂_c = Λ_c Φ_c Λ_cᵀ`, where
+    `Φ_c` is the dis-attenuated LV correlation matrix.
+  - `PLSc.bic()` — Bayesian Information Criterion per endogenous LV
+    using the corrected R².
+  - `PLSc.vif_inner()` — inner VIF per endogenous LV computed on the
+    dis-attenuated correlation metric.
+  - `PLSc.summary()` now additionally returns `ave`, `rho_c`, and `bic`
+    columns (existing `rho_a`, `r_squared`, `r_squared_adj` unchanged).
+  The PLS-SEM `Plspm` accessors (`inner_summary`, `model_fit`, `vif`,
+  `htmt`, …) still return the uncorrected composite-model values so
+  both interpretations remain available side-by-side.
 
 ## [1.5.0] - 2026-06-10
 
