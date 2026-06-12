@@ -9,6 +9,28 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [1.7.0] - 2026-06-12
+
+Extends the PLSc consistent-PLS layer with first-class direct / indirect /
+total effects and specific indirect effects, so mediation analysis on a
+common-factor model no longer carries the composite-model attenuation
+forward into the chain product.
+
+### Added
+- **`PLSc.effects()`** returns a direct / indirect / total effects table
+  computed by walking the structural DAG over the dis-attenuated path
+  matrix. Drop-in replacement for `Plspm.effects()` when interpreting the
+  model as a common-factor (covariance-based) one — same column layout
+  (`from`, `to`, `direct`, `indirect`, `total`) and index labels
+  (`"A -> B"`).
+- **`PLSc.specific_indirect_effects(source, target, through=None)`**
+  point-estimates each `source -> ... -> target` mediation chain by
+  multiplying the PLSc β along the chain (Zhao/Lynch/Chen 2010;
+  Nitzl/Roldán/Cepeda 2016). Without disattenuation the SIE inherits the
+  measurement-error attenuation that PLSc was designed to remove. Same
+  interface as `Plspm.specific_indirect_effects` (chain enumeration,
+  explicit `through=` path, error cases).
+
 ## [1.6.0] - 2026-06-12
 
 Adds bootstrap-based multi-group analysis for the two-group comparison case

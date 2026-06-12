@@ -19,7 +19,9 @@ import numpy as np
 import pandas as pd
 
 import openpls.config as c
+from openpls.inner_model import _effects
 from openpls.mode import Mode
+from openpls.specific_indirect import specific_indirect_point
 
 
 def _rho_a_block(w: np.ndarray, indicators: np.ndarray) -> float:
@@ -188,6 +190,7 @@ class PLSc:
 
         vif_inner = self.__compute_inner_vif(path, adj_cors)
 
+        self.__path = path
         self.__rho = rho
         self.__adj_cors = adj_cors
         self.__paths = corrected_paths
@@ -202,6 +205,7 @@ class PLSc:
         self.__d_uls = d_uls
         self.__bic = bic
         self.__vif_inner = vif_inner
+        self.__effects = _effects(corrected_paths)
 
     @staticmethod
     def __compute_fit(
@@ -314,6 +318,65 @@ class PLSc:
     def r_squared_adj(self) -> pd.Series:
         """Corrected adjusted R² per endogenous LV."""
         return self.__r_squared_adj
+
+    def effects(self) -> pd.DataFrame:
+        """Direct, indirect, and total effects from the corrected path matrix.
+
+        Mirrors :meth:`Plspm.effects` but multiplies the dis-attenuated
+        PLSc path coefficients along the structural DAG instead of the
+        uncorrected composite ones. For a chain ``A -> M -> Y``, the
+        indirect effect contributed by that chain is the product of the
+        PLSc β along the chain; the total effect from A to Y is the
+        sum of all such products (including the direct edge A -> Y if
+        present). Use these when the model is being interpreted as a
+        common-factor model.
+
+        Returns:
+            DataFrame indexed by ``"<from> -> <to>"`` with columns
+            ``from``, ``to``, ``direct``, ``indirect``, ``total``.
+        """
+        return self.__effects
+
+    def specific_indirect_effects(
+        self,
+        source: str,
+        target: str,
+        through: list[str] | None = None,
+    ) -> pd.DataFrame:
+        """Point-estimate specific indirect effects on the corrected paths.
+
+        Same interface and semantics as
+        :meth:`Plspm.specific_indirect_effects`, but multiplies the
+        dis-attenuated PLSc β along each mediation chain instead of the
+        uncorrected composite β. Required when the structural model is
+        interpreted as a common-factor (covariance-based) model — the
+        composite-model SIE would otherwise carry the PLS-SEM
+        measurement-error attenuation forward into the mediation
+        estimate.
+
+        Args:
+            source: source LV name.
+            target: target LV name.
+            through: explicit mediator chain (e.g. ``["M1", "M2"]``) or
+                ``None`` to enumerate every chain ``source -> ... -> target``.
+
+        Returns:
+            DataFrame indexed by chain label (``"A -> M -> Y"``) with
+            columns ``from``, ``to``, ``via`` (tuple of intermediates),
+            and ``estimate`` (product of corrected β along the chain).
+
+        Raises:
+            ValueError: if ``source == target``, no indirect chain
+                exists, or ``through`` references nonexistent edges.
+            KeyError: if ``source`` or ``target`` is not in the model.
+        """
+        return specific_indirect_point(
+            self.__paths,
+            self.__path,
+            source,
+            target,
+            through=through,
+        )
 
     def loadings(self) -> pd.Series:
         """Corrected outer loadings (common-factor interpretation).

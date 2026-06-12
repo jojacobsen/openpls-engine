@@ -367,3 +367,154 @@ def test_plsc_deterministic_across_fits():
         plspm_calc_a.plsc().path_coefficients(),
         plspm_calc_b.plsc().path_coefficients(),
     )
+
+
+def _attenuated_three_lv_fit(
+    n: int = 1000,
+    p: int = 4,
+    loading: float = 0.7,
+    seed: int = 11,
+) -> Plspm:
+    """Three-LV chain ``X -> M -> Y`` with reflective Mode-A blocks at
+    loading=0.7, so reliabilities < 1 and PLSc disattenuation is
+    non-trivial."""
+    rng = np.random.default_rng(seed)
+    eta_x = rng.standard_normal(n)
+    eta_m = 0.5 * eta_x + rng.standard_normal(n) * np.sqrt(1 - 0.25)
+    eta_y = 0.4 * eta_m + rng.standard_normal(n) * np.sqrt(1 - 0.16)
+    err_scale = np.sqrt(1 - loading ** 2)
+    x_inds = loading * eta_x[:, None] + rng.standard_normal((n, p)) * err_scale
+    m_inds = loading * eta_m[:, None] + rng.standard_normal((n, p)) * err_scale
+    y_inds = loading * eta_y[:, None] + rng.standard_normal((n, p)) * err_scale
+    df = pd.DataFrame(
+        np.column_stack([x_inds, m_inds, y_inds]),
+        columns=(
+            [f"x{i+1}" for i in range(p)]
+            + [f"m{i+1}" for i in range(p)]
+            + [f"y{i+1}" for i in range(p)]
+        ),
+    )
+    structure = c.Structure()
+    structure.add_path(["X"], ["M", "Y"])
+    structure.add_path(["M"], ["Y"])
+    config = c.Config(structure.path(), scaled=False)
+    config.add_lv_with_columns_named("X", Mode.A, df, "x")
+    config.add_lv_with_columns_named("M", Mode.A, df, "m")
+    config.add_lv_with_columns_named("Y", Mode.A, df, "y")
+    return Plspm(df, config, Scheme.CENTROID)
+
+
+def test_plsc_effects_columns_and_index_match_plspm():
+    """PLSc.effects() must have the same column layout as Plspm.effects()
+    so the UI / exporters can use it as a drop-in replacement."""
+    plspm_calc = _satisfaction_plspm()
+    raw = plspm_calc.effects()
+    corrected = plspm_calc.plsc().effects()
+    assert list(corrected.columns) == list(raw.columns) == [
+        "from", "to", "direct", "indirect", "total",
+    ]
+    assert set(corrected.index) == set(raw.index)
+
+
+def test_plsc_effects_total_equals_direct_plus_indirect():
+    plspm_calc = _satisfaction_plspm()
+    eff = plspm_calc.plsc().effects()
+    np.testing.assert_allclose(
+        eff["total"].to_numpy(dtype=float),
+        (eff["direct"] + eff["indirect"]).to_numpy(dtype=float),
+        atol=1e-12,
+    )
+
+
+def test_plsc_effects_diverge_from_plspm_under_attenuation():
+    """With reliabilities < 1, the dis-attenuated effect magnitudes
+    should differ from the composite-based ones for at least one
+    target edge in a multi-step chain."""
+    plspm_calc = _attenuated_three_lv_fit()
+    raw = plspm_calc.effects()
+    corrected = plspm_calc.plsc().effects()
+    # X -> Y has a direct edge plus the X -> M -> Y indirect chain;
+    # under attenuation both components shift, so totals must too.
+    raw_total = float(raw.loc["X -> Y", "total"])
+    corr_total = float(corrected.loc["X -> Y", "total"])
+    assert abs(corr_total - raw_total) > 1e-3
+    # And the corrected total should be at least as large in magnitude
+    # (disattenuation never shrinks the structural signal here).
+    assert abs(corr_total) >= abs(raw_total) - 1e-9
+
+
+def test_plsc_effects_match_corrected_path_product_for_simple_chain():
+    """For X -> M -> Y, indirect(X -> Y) must equal β(M←X) * β(Y←M) on
+    the corrected path matrix."""
+    plspm_calc = _attenuated_three_lv_fit()
+    plsc = plspm_calc.plsc()
+    corr = plsc.path_coefficients()
+    eff = plsc.effects()
+    expected_indirect = float(corr.loc["M", "X"]) * float(corr.loc["Y", "M"])
+    np.testing.assert_allclose(
+        float(eff.loc["X -> Y", "indirect"]),
+        expected_indirect,
+        atol=1e-12,
+    )
+
+
+def test_plsc_specific_indirect_uses_corrected_paths():
+    """The chain product reported by PLSc.specific_indirect_effects must
+    multiply the *corrected* β values, not the raw composite ones."""
+    plspm_calc = _satisfaction_plspm()
+    plsc = plspm_calc.plsc()
+    corr = plsc.path_coefficients()
+    chain = plsc.specific_indirect_effects("IMAG", "LOY", through=["SAT"])
+    expected = float(corr.loc["SAT", "IMAG"]) * float(corr.loc["LOY", "SAT"])
+    np.testing.assert_allclose(
+        float(chain.iloc[0]["estimate"]),
+        expected,
+        atol=1e-12,
+    )
+
+
+def test_plsc_specific_indirect_diverges_from_plspm_under_attenuation():
+    """For the same chain, PLSc and PLS-SEM SIE estimates should differ
+    once the underlying blocks are noisy."""
+    plspm_calc = _attenuated_three_lv_fit()
+    raw = plspm_calc.specific_indirect_effects("X", "Y", through=["M"])
+    corrected = plspm_calc.plsc().specific_indirect_effects(
+        "X", "Y", through=["M"]
+    )
+    raw_est = float(raw.iloc[0]["estimate"])
+    corr_est = float(corrected.iloc[0]["estimate"])
+    assert abs(corr_est - raw_est) > 1e-3
+
+
+def test_plsc_specific_indirect_sum_matches_total_indirect():
+    """Sum of all enumerated chain products equals the indirect cell of
+    the effects table — mirrors the same invariant tested for Plspm."""
+    plspm_calc = _satisfaction_plspm()
+    plsc = plspm_calc.plsc()
+    chains_df = plsc.specific_indirect_effects("IMAG", "LOY")
+    expected = float(plsc.effects().loc["IMAG -> LOY", "indirect"])
+    np.testing.assert_allclose(
+        float(chains_df["estimate"].sum()),
+        expected,
+        atol=1e-9,
+    )
+
+
+def test_plsc_specific_indirect_same_source_target_raises():
+    plspm_calc = _satisfaction_plspm()
+    with pytest.raises(ValueError, match="source and target must differ"):
+        plspm_calc.plsc().specific_indirect_effects("IMAG", "IMAG")
+
+
+def test_plsc_specific_indirect_unknown_lv_raises():
+    plspm_calc = _satisfaction_plspm()
+    with pytest.raises(KeyError):
+        plspm_calc.plsc().specific_indirect_effects("NOPE", "LOY")
+
+
+def test_plsc_specific_indirect_broken_through_raises():
+    plspm_calc = _satisfaction_plspm()
+    with pytest.raises(ValueError, match="no direct edge"):
+        plspm_calc.plsc().specific_indirect_effects(
+            "IMAG", "LOY", through=["VAL"]
+        )
