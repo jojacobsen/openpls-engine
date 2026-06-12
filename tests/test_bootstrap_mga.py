@@ -25,7 +25,6 @@ from openpls.mode import Mode
 from openpls.scale import Scale
 from openpls.scheme import Scheme
 
-
 # ---------------------------------------------------------------------------
 # Small fixture: russa with a synthetic group column
 # ---------------------------------------------------------------------------
