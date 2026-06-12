@@ -104,7 +104,7 @@ def test_step2_step3_columns_and_types():
     s3 = m.step3()
     assert set(s3.columns) == {
         "construct", "mean_diff", "mean_p_value", "mean_equal",
-        "log_var_ratio", "var_p_value", "var_equal",
+        "log_var_ratio", "var_diff", "var_p_value", "var_equal",
     }
     summary = m.summary()
     assert set(summary["invariance"]).issubset({"full", "partial", "none"})
@@ -252,6 +252,44 @@ def test_rejects_empty_group():
             group_a=GroupSpec("west", values=["west"]),
             group_b=GroupSpec("none", values=["nowhere"]),
             iterations=5,
+        )
+
+
+def test_var_diff_sign_matches_log_var_ratio_satisfaction():
+    """Per Henseler/Ringle/Sarstedt 2016, log(var_a/var_b) and (var_a - var_b)
+    are both zero under H₀ and share the same sign when non-zero. Verify the
+    sign identity holds on the satisfaction fixture for every construct."""
+    satisfaction = pd.read_csv("file:tests/data/satisfaction.csv", index_col=0).copy()
+    rng = np.random.default_rng(1)
+    satisfaction["arm"] = rng.choice(["alpha", "beta"], size=len(satisfaction))
+    structure = c.Structure()
+    structure.add_path(["IMAG"], ["EXPE", "SAT", "LOY"])
+    structure.add_path(["EXPE"], ["QUAL", "VAL", "SAT"])
+    structure.add_path(["QUAL"], ["VAL", "SAT"])
+    structure.add_path(["VAL"], ["SAT"])
+    structure.add_path(["SAT"], ["LOY"])
+    cfg = c.Config(structure.path(), scaled=False)
+    for lv in ["IMAG", "EXPE", "QUAL", "VAL", "SAT", "LOY"]:
+        cfg.add_lv_with_columns_named(lv, Mode.A, satisfaction, lv.lower())
+    m = MICOM(
+        satisfaction,
+        cfg,
+        grouping_column="arm",
+        group_a=GroupSpec("alpha", values=["alpha"]),
+        group_b=GroupSpec("beta", values=["beta"]),
+        iterations=20,
+        seed=7,
+    )
+    s3 = m.step3()
+    assert "var_diff" in s3.columns
+    for _, row in s3.iterrows():
+        lvr = float(row["log_var_ratio"])
+        vd = float(row["var_diff"])
+        if np.isnan(lvr) or vd == 0.0 or lvr == 0.0:
+            continue
+        assert np.sign(vd) == np.sign(lvr), (
+            f"{row['construct']}: sign(var_diff)={np.sign(vd)} differs from "
+            f"sign(log_var_ratio)={np.sign(lvr)}"
         )
 
 
