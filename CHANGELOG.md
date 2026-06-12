@@ -9,9 +9,33 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
-## [Unreleased]
+## [1.6.0] - 2026-06-12
+
+Adds bootstrap-based multi-group analysis for the two-group comparison case
+(complementing the permutation-based `MGA`), the canonical disattenuated
+PLSc quality panel (AVE / ρ_c / SRMR / BIC / HTMT / VIF on the corrected
+metric), Henseler-convention IPMA normalized weights, MICOM's raw
+variance-difference statistic, PLSpredict's earliest-antecedents LM
+benchmark, and unified bootstrap inference tables on `LongBootstrap`.
 
 ### Added
+- **Bootstrap-based Multi-Group Analysis** via
+  `openpls.bootstrap_mga.BootstrapMGA`. Complements the permutation-based
+  `openpls.mga.MGA` with bootstrap inference on the difference between
+  exactly two groups. For every path coefficient, outer loading, outer
+  weight, total effect, and specific / total indirect effect, three pairwise
+  difference tests are reported side by side:
+  - **Henseler (2007) distribution-based** one- / two-tailed p-values
+    derived from the rank position of one group's bootstrap mean in the
+    other group's resample distribution.
+  - **Chin (2000) parametric** pooled-variance t-test on bootstrap
+    standard errors (Hair Primer 3rd ed. Eq. 4.7).
+  - **Welch-Satterthwaite** unequal-variance variant (Eq. 4.8) for groups
+    with heteroscedastic resample distributions.
+  Each panel also returns per-group bootstrap means, standard errors, and
+  BCa percentile confidence intervals (Efron 1987). Resamples follow the
+  PLS sign indeterminacy and remain unflipped to match SmartPLS's "no sign
+  changes" option.
 - **Unified bootstrap inference tables** on `LongBootstrap` via the new
   `inference` property. Returns a dict keyed by `pathCoefficients`,
   `outerLoadings`, `outerWeights`, `specificIndirectEffects`,
