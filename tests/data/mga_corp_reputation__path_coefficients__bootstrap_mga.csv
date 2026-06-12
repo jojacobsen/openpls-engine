@@ -1,0 +1,14 @@
+path,Difference (Contract plan - Prepaid plan),1-tailed (Contract plan vs Prepaid plan) p value,2-tailed (Contract plan vs Prepaid plan) p value
+ATTR -> COMP,-0.114,0.849,0.301
+ATTR -> LIKE,-0.112,0.79,0.42
+COMP -> CUSA,-0.106,0.77,0.46
+COMP -> CUSL,-0.197,0.961,0.078
+CSOR -> COMP,0.118,0.135,0.27
+CSOR -> LIKE,0.103,0.21,0.42
+CUSA -> CUSL,-0.159,0.98,0.041
+LIKE -> CUSA,0.111,0.188,0.376
+LIKE -> CUSL,0.22,0.021,0.042
+PERF -> COMP,0.095,0.246,0.492
+PERF -> LIKE,0.174,0.123,0.246
+QUAL -> COMP,-0.117,0.806,0.388
+QUAL -> LIKE,-0.165,0.88,0.24
