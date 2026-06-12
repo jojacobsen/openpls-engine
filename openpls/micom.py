@@ -81,6 +81,7 @@ class _Step3Stat:
     construct: str
     mean_diff: float
     log_var_ratio: float
+    var_diff: float
 
 
 class MICOM:
@@ -217,14 +218,14 @@ class MICOM:
         df_a: pd.DataFrame,
         df_b: pd.DataFrame,
         pooled: pd.DataFrame,
-    ) -> dict[str, tuple[float, float]]:
-        """Composite mean diff and log-variance ratio using pooled weights."""
+    ) -> dict[str, tuple[float, float, float]]:
+        """Composite mean diff, log-variance ratio, and raw variance diff."""
         all_indicators = sorted({m for inds in self.__indicators.values() for m in inds})
         mu = pooled[all_indicators].mean()
         sd = pooled[all_indicators].std(ddof=1).replace(0.0, np.nan)
         std_a = (df_a[all_indicators] - mu) / sd
         std_b = (df_b[all_indicators] - mu) / sd
-        out: dict[str, tuple[float, float]] = {}
+        out: dict[str, tuple[float, float, float]] = {}
         for lv in self.__constructs:
             w = weights_pooled[lv]
             eta_a = std_a[w.index].values @ w.values
@@ -232,11 +233,12 @@ class MICOM:
             mean_diff = float(np.nanmean(eta_a) - np.nanmean(eta_b))
             var_a = float(np.nanvar(eta_a, ddof=1))
             var_b = float(np.nanvar(eta_b, ddof=1))
+            var_diff = var_a - var_b
             if var_a <= 0.0 or var_b <= 0.0:
                 log_ratio = float("nan")
             else:
                 log_ratio = float(np.log(var_a / var_b))
-            out[lv] = (mean_diff, log_ratio)
+            out[lv] = (mean_diff, log_ratio, var_diff)
         return out
 
     # ----- permutation tests --------------------------------------------
@@ -315,7 +317,7 @@ class MICOM:
                 eta = composites[lv]
                 eta_a = eta[idx_a]
                 eta_b = eta[idx_b]
-                obs_mean, obs_lvr = self.__observed_step3[lv]
+                obs_mean, obs_lvr, _ = self.__observed_step3[lv]
                 # Mean
                 if not np.isnan(obs_mean):
                     mean_valid[lv] += 1
@@ -373,13 +375,19 @@ class MICOM:
         """Equality of composite means and variances (Step 3) per construct.
 
         Columns: ``construct, mean_diff, mean_p_value, mean_equal,
-        log_var_ratio, var_p_value, var_equal``.
+        log_var_ratio, var_diff, var_p_value, var_equal``.
+
+        ``log_var_ratio`` (Henseler/Ringle/Sarstedt 2016 §3.4 convention) and
+        ``var_diff = var_a - var_b`` (SmartPLS-style raw difference) carry the
+        same sign and are both zero under H₀. Both are reported so that
+        cross-implementation Δ comparisons in validation tables can pick the
+        matching convention.
         """
         if self.__step3_df is None:
             pvals = self.__permutation_step3()
             rows = []
             for lv in self.__constructs:
-                mean_diff, lvr = self.__observed_step3[lv]
+                mean_diff, lvr, var_diff = self.__observed_step3[lv]
                 p_mean, p_var = pvals[lv]
                 rows.append(
                     {
@@ -389,6 +397,7 @@ class MICOM:
                         "mean_equal": bool(p_mean >= self.__alpha)
                         if not np.isnan(p_mean) else False,
                         "log_var_ratio": lvr,
+                        "var_diff": var_diff,
                         "var_p_value": p_var,
                         "var_equal": bool(p_var >= self.__alpha)
                         if not np.isnan(p_var) else False,

@@ -37,6 +37,12 @@ package and publishes it to PyPI via OIDC trusted publishing.
   the value SmartPLS-style IPMA tables report under "Normalized Weight").
   The legacy `normalized_weight` (weight ÷ Σ weight per LV) remains for
   backwards compatibility.
+- `MICOM.step3()` now emits an additional `var_diff` column (= `var_a -
+  var_b`) alongside the existing `log_var_ratio` (= `log(var_a / var_b)`,
+  Henseler/Ringle/Sarstedt 2016 §3.4). Both quantities are zero under H₀
+  and share the same sign; the raw difference matches the convention used
+  by SmartPLS-style validation tables, while the log-ratio remains the
+  canonical Henseler test statistic.
 
 ## [1.5.0] - 2026-06-10
 
