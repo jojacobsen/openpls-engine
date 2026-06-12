@@ -412,7 +412,6 @@ class LongBootstrap:
         effects (one per source/target pair) with full inference."""
         path_matrix = self.__config.path()
         edge_index = {(src, tgt): k for k, (src, tgt) in enumerate(self.__path_keys)}
-        lv_index = {name: i for i, name in enumerate(self.__lv_names)}
 
         sie_rows: list[dict[str, Any]] = []
         tie_rows: list[dict[str, Any]] = []
