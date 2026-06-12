@@ -129,6 +129,9 @@ class IPMA:
             if not eff.empty
             else pd.DataFrame(columns=["total"])
         )
+        lv_imp: dict[str, float] = {
+            lv: float(relevant.loc[lv, "total"]) for lv in relevant.index
+        }
 
         ind_rows: list[dict] = []
         lv_perf: dict[str, float] = {}
@@ -163,16 +166,34 @@ class IPMA:
             valid = block.notna().all(axis=1)
             mean_perf = float(perf_series[valid].mean()) if valid.any() else float("nan")
             lv_perf[lv] = mean_perf
+            lv_total_effect = lv_imp.get(lv, float("nan"))
             for ind in w_raw.index:
                 lo, hi = bounds[ind]
                 series = rescaled[ind].dropna()
                 mean_rescaled = float(series.mean()) if not series.empty else float("nan")
+                outer_w = float(w_raw.loc[ind])
+                ind_importance = (
+                    outer_w * lv_total_effect
+                    if not np.isnan(lv_total_effect)
+                    else float("nan")
+                )
+                # Henseler IPMA normalized weight (Ringle & Sarstedt 2016):
+                # the indicator's share of its LV's importance on the target,
+                # i.e. (outer_weight × lv_importance) / lv_importance = outer
+                # weight. Computed as the explicit ratio so consumers can
+                # reproduce the SmartPLS-style indicator-importance table.
+                if np.isnan(lv_total_effect) or lv_total_effect == 0:
+                    henseler_norm = float("nan")
+                else:
+                    henseler_norm = ind_importance / lv_total_effect
                 ind_rows.append(
                     {
                         "lv": lv,
                         "indicator": ind,
-                        "outer_weight": float(w_raw.loc[ind]),
+                        "outer_weight": outer_w,
                         "normalized_weight": float(w_norm.loc[ind]),
+                        "indicator_importance": ind_importance,
+                        "henseler_normalized_weight": henseler_norm,
                         "performance": mean_rescaled,
                         "scale_min": lo,
                         "scale_max": hi,
@@ -222,7 +243,15 @@ class IPMA:
 
         Indexed by ``(lv, indicator)``. Columns:
           - ``outer_weight``: raw weight from the outer model.
-          - ``normalized_weight``: weight divided by the per-LV weight sum.
+          - ``normalized_weight``: weight divided by the per-LV weight sum
+            (legacy "share of weight" definition).
+          - ``indicator_importance``: indicator's total effect on the IPMA
+            target, computed as ``outer_weight × lv_importance`` per the
+            Henseler IPMA convention (Ringle & Sarstedt 2016).
+          - ``henseler_normalized_weight``: ``indicator_importance /
+            lv_importance``. This is the value SmartPLS-style IPMA tables
+            report under "Normalized Weight" and is what practitioners
+            compare against the LV-level importance.
           - ``performance``: mean of the 0-100-rescaled indicator.
           - ``scale_min``, ``scale_max``: bounds used for rescaling.
         """

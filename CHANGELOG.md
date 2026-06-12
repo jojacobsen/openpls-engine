@@ -29,6 +29,14 @@ package and publishes it to PyPI via OIDC trusted publishing.
   both percentile and bias-corrected CI columns alongside the existing
   `ci_lower`/`ci_upper` (which continue to hold the BC bounds for
   backwards compatibility).
+- `IPMA.indicators()` now emits two additional columns to match the
+  Henseler IPMA convention (Ringle & Sarstedt 2016):
+  `indicator_importance` (= `outer_weight × lv_importance`, the
+  indicator's total effect on the IPMA target) and
+  `henseler_normalized_weight` (= `indicator_importance / lv_importance`,
+  the value SmartPLS-style IPMA tables report under "Normalized Weight").
+  The legacy `normalized_weight` (weight ÷ Σ weight per LV) remains for
+  backwards compatibility.
 
 ## [1.5.0] - 2026-06-10
 
