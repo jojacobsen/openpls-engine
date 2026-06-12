@@ -117,6 +117,8 @@ def test_ipma_indicators_table_structure():
     assert set(ind.columns) == {
         "outer_weight",
         "normalized_weight",
+        "indicator_importance",
+        "henseler_normalized_weight",
         "performance",
         "scale_min",
         "scale_max",
@@ -126,6 +128,61 @@ def test_ipma_indicators_table_structure():
     sums = ind.groupby(level="lv")["normalized_weight"].sum()
     for lv, s in sums.items():
         assert math.isclose(float(s), 1.0, abs_tol=1e-9), f"{lv}: normalized weights sum to {s}"
+
+
+def test_ipma_henseler_indicator_importance_matches_outer_weight_times_lv_importance():
+    """Per Ringle & Sarstedt 2016, indicator importance = outer_weight × LV's
+    total effect on the target."""
+    fit, _ = _satisfaction_plspm()
+    ipma = fit.ipma("SAT")
+    lvs = ipma.latent_variables()
+    inds = ipma.indicators()
+    for (lv, ind), row in inds.iterrows():
+        if lv not in lvs.index:
+            continue
+        lv_imp = float(lvs.loc[lv, "importance"])
+        expected = float(row["outer_weight"]) * lv_imp
+        assert math.isclose(
+            float(row["indicator_importance"]), expected, abs_tol=1e-10
+        ), f"{lv}.{ind}: indicator_importance does not match outer_weight × lv_importance"
+
+
+def test_ipma_henseler_normalized_weight_equals_importance_ratio():
+    """Henseler-IPMA normalized weight = indicator_importance / lv_importance."""
+    fit, _ = _satisfaction_plspm()
+    ipma = fit.ipma("SAT")
+    lvs = ipma.latent_variables()
+    inds = ipma.indicators()
+    for (lv, ind), row in inds.iterrows():
+        if lv not in lvs.index:
+            continue
+        lv_imp = float(lvs.loc[lv, "importance"])
+        if lv_imp == 0:
+            continue
+        expected = float(row["indicator_importance"]) / lv_imp
+        assert math.isclose(
+            float(row["henseler_normalized_weight"]), expected, abs_tol=1e-10
+        ), f"{lv}.{ind}: henseler_normalized_weight does not match importance ratio"
+        # The Henseler ratio also reduces algebraically to the raw outer
+        # weight; verify that identity holds to catch silent regressions
+        # if the indicator-importance formula ever drifts.
+        assert math.isclose(
+            float(row["henseler_normalized_weight"]),
+            float(row["outer_weight"]),
+            abs_tol=1e-10,
+        ), f"{lv}.{ind}: Henseler normalized weight should equal raw outer weight"
+
+
+def test_ipma_henseler_columns_nan_for_lv_without_effect_on_target():
+    """When an LV has no path into the target, its indicator-importance is
+    NaN (cannot be assigned) and the Henseler ratio inherits that."""
+    fit, _ = _satisfaction_plspm()
+    # LOY does not feed into SAT in the satisfaction model.
+    inds = fit.ipma("SAT").indicators()
+    if ("LOY", "loy1") in inds.index:
+        row = inds.loc[("LOY", "loy1")]
+        assert math.isnan(float(row["indicator_importance"]))
+        assert math.isnan(float(row["henseler_normalized_weight"]))
 
 
 def test_ipma_loy_as_target_includes_sat():
