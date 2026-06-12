@@ -43,6 +43,14 @@ package and publishes it to PyPI via OIDC trusted publishing.
   and share the same sign; the raw difference matches the convention used
   by SmartPLS-style validation tables, while the log-ratio remains the
   canonical Henseler test statistic.
+- `Plspm.predict()` / `PLSPredict` accepts a new `lm_predictor_set`
+  parameter selecting the LM benchmark's regressor block:
+  - `"direct"` (default, backwards-compatible): the LV's direct path
+    predecessors.
+  - `"earliest_antecedents"`: walks upstream through every mediator and
+    uses only the exogenous LVs at the top of the structural DAG, per the
+    Shmueli/Hair/Ringle 2019 PLSpredict convention. The PLS-side
+    predictions are unaffected; only the LM benchmark moves.
 
 ## [1.5.0] - 2026-06-10
 

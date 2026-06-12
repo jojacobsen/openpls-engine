@@ -58,6 +58,8 @@ import statsmodels.api as sm
 from openpls.config import Config
 from openpls.scheme import Scheme
 
+_VALID_LM_PREDICTOR_SETS = ("direct", "earliest_antecedents")
+
 
 class PLSPredict:
     def __init__(
@@ -68,6 +70,7 @@ class PLSPredict:
         k: int = 10,
         repeats: int = 1,
         seed: int | None = 42,
+        lm_predictor_set: str = "direct",
     ):
         if k < 2:
             raise ValueError("k must be >= 2")
@@ -76,13 +79,20 @@ class PLSPredict:
         n = len(data)
         if k > n:
             raise ValueError(f"k ({k}) cannot exceed sample size ({n})")
+        if lm_predictor_set not in _VALID_LM_PREDICTOR_SETS:
+            raise ValueError(
+                f"lm_predictor_set must be one of {_VALID_LM_PREDICTOR_SETS}, "
+                f"got {lm_predictor_set!r}"
+            )
         self.__config = config
         self.__data = data.reset_index(drop=True)
         self.__scheme = scheme
         self.__k = k
         self.__repeats = repeats
         self.__seed = seed
+        self.__lm_predictor_set = lm_predictor_set
         self.__metrics: pd.DataFrame | None = None
+        self.__earliest_cache: dict[str, list[str]] = {}
 
     @property
     def k(self) -> int:
@@ -146,6 +156,47 @@ class PLSPredict:
             if ind in self.__data.columns
         ]
 
+    def __lm_predecessor_lvs(self, lv: str) -> list[str]:
+        """LVs whose indicators serve as the LM regressor block for ``lv``.
+
+        - ``direct`` (default): the LV's direct path predecessors.
+        - ``earliest_antecedents``: the exogenous (no-predecessor) LVs reachable
+          by walking upstream through any mediator chain. Matches the
+          Shmueli/Hair/Ringle 2019 default LM benchmark.
+        """
+        path = self.__config.path()
+        direct = [p for p in path.columns if path.loc[lv, p] == 1]
+        if self.__lm_predictor_set == "direct":
+            return direct
+        if lv in self.__earliest_cache:
+            return self.__earliest_cache[lv]
+        ancestors: list[str] = []
+        seen: set[str] = set()
+        stack = list(direct)
+        while stack:
+            p = stack.pop()
+            if p in seen:
+                continue
+            seen.add(p)
+            if path.loc[p].sum() == 0:
+                ancestors.append(p)
+            else:
+                stack.extend(q for q in path.columns if path.loc[p, q] == 1)
+        # Preserve a stable order: follow the column order of `path`.
+        ordered = [c for c in path.columns if c in ancestors]
+        self.__earliest_cache[lv] = ordered
+        return ordered
+
+    def __lm_feature_cols(
+        self, lv: str, available_columns: pd.Index | list[str]
+    ) -> list[str]:
+        cols: list[str] = []
+        for p in self.__lm_predecessor_lvs(lv):
+            for i in self.__config.mvs(p):
+                if i in available_columns and i not in cols:
+                    cols.append(i)
+        return cols
+
     def __topo_order(self) -> list[str]:
         path = self.__config.path()
         ordered: list[str] = []
@@ -206,7 +257,6 @@ class PLSPredict:
     def __compute_in_sample(
         self,
         endo_inds: list[tuple[str, str]],
-        path: pd.DataFrame,
     ) -> pd.DataFrame:
         """In-sample PLS and LM errors from a single fit on the full data."""
         from openpls.plspm import Plspm  # local import to avoid circular dependency
@@ -255,12 +305,7 @@ class PLSPredict:
             lv_score = scores.loc[:, lv].to_numpy(dtype=float)
             pls_pred = mean + sd * loading * lv_score
 
-            preds_lv = [p for p in path.columns if path.loc[lv, p] == 1]
-            feature_cols: list[str] = []
-            for p in preds_lv:
-                for i in self.__config.mvs(p):
-                    if i in self.__data.columns and i not in feature_cols:
-                        feature_cols.append(i)
+            feature_cols = self.__lm_feature_cols(lv, self.__data.columns)
             if not feature_cols:
                 lm_pred = np.full(len(self.__data), mean)
             else:
@@ -307,7 +352,6 @@ class PLSPredict:
 
         n = len(self.__data)
         endo_inds = self.__endogenous_indicators()
-        path = self.__config.path()
         topo = self.__topo_order()
 
         pls_sq = {ind: 0.0 for _, ind in endo_inds}
@@ -355,12 +399,7 @@ class PLSPredict:
                     actual = df_test[ind].to_numpy(dtype=float)
                     pls_pred = train_mean + train_sd * loading * test_scores[lv]
 
-                    preds_lv = [p for p in path.columns if path.loc[lv, p] == 1]
-                    feature_cols: list[str] = []
-                    for p in preds_lv:
-                        for i in self.__config.mvs(p):
-                            if i in df_train.columns and i not in feature_cols:
-                                feature_cols.append(i)
+                    feature_cols = self.__lm_feature_cols(lv, df_train.columns)
                     if not feature_cols:
                         lm_pred = np.full(len(df_test), train_mean)
                     else:
@@ -444,5 +483,5 @@ class PLSPredict:
                 }
             )
         out = pd.DataFrame(rows).set_index(["lv", "indicator"])
-        in_sample = self.__compute_in_sample(endo_inds, path)
+        in_sample = self.__compute_in_sample(endo_inds)
         return out.join(in_sample, how="left")
