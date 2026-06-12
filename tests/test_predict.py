@@ -142,6 +142,70 @@ def test_predict_in_sample_columns_finite_and_at_most_oos():
     assert lm_better_in >= len(m) // 2
 
 
+def test_predict_rejects_invalid_lm_predictor_set():
+    fit = _satisfaction_plspm()
+    with pytest.raises(ValueError, match="lm_predictor_set"):
+        fit.predict(k=5, lm_predictor_set="nope")
+
+
+def test_predict_earliest_antecedents_changes_lm_for_mediator_chains():
+    """ECSI has many mediator chains (e.g. IMAG → EXPE → SAT, QUAL → VAL → SAT).
+    Switching to earliest_antecedents must move the LM benchmark for every
+    endogenous indicator whose LV sits downstream of a mediator.
+    """
+    fit = _satisfaction_plspm()
+    direct = fit.predict(k=5, seed=42, lm_predictor_set="direct").metrics()
+    earliest = fit.predict(
+        k=5, seed=42, lm_predictor_set="earliest_antecedents"
+    ).metrics()
+    # PLS-side predictions are unchanged: only the LM benchmark moves.
+    for col in ("rmse_pls", "mae_pls", "q2_predict", "rmse_pls_in", "mae_pls_in"):
+        assert (direct[col].fillna(0) - earliest[col].fillna(0)).abs().sum() < 1e-9, (
+            f"{col} unexpectedly changed when only LM benchmark mode flipped"
+        )
+    # In ECSI every endogenous LV has at least one mediator predecessor, so
+    # every LM column must differ at least somewhere.
+    for col in ("rmse_lm", "mae_lm", "rmse_lm_in", "mae_lm_in"):
+        diff = (direct[col] - earliest[col]).abs().sum()
+        assert diff > 1e-6, f"{col} did not change between LM modes"
+
+
+def test_predict_earliest_antecedents_matches_direct_when_no_mediator():
+    """A flat two-LV model (X → Y) has no mediator, so both modes pick the
+    same feature set and the LM benchmark must be identical."""
+    import numpy as np
+
+    rng = np.random.default_rng(0)
+    n = 200
+    df = pd.DataFrame(
+        {
+            "x1": rng.standard_normal(n),
+            "x2": rng.standard_normal(n),
+            "y1": rng.standard_normal(n),
+            "y2": rng.standard_normal(n),
+        }
+    )
+    df["y1"] = 0.8 * df["x1"] + 0.2 * df["y1"]
+    df["y2"] = 0.7 * df["x1"] + 0.5 * df["x2"] + 0.3 * df["y2"]
+    structure = c.Structure()
+    structure.add_path(["X"], ["Y"])
+    cfg = c.Config(structure.path(), scaled=False)
+    cfg.add_lv("X", Mode.A, c.MV("x1"), c.MV("x2"))
+    cfg.add_lv("Y", Mode.A, c.MV("y1"), c.MV("y2"))
+    fit = Plspm(df, cfg, Scheme.CENTROID)
+    direct = fit.predict(k=5, seed=1, lm_predictor_set="direct").metrics()
+    earliest = fit.predict(
+        k=5, seed=1, lm_predictor_set="earliest_antecedents"
+    ).metrics()
+    for col in ("rmse_lm", "mae_lm", "rmse_lm_in", "mae_lm_in"):
+        for ind in direct.index:
+            assert math.isclose(
+                float(direct.loc[ind, col]),
+                float(earliest.loc[ind, col]),
+                abs_tol=1e-9,
+            ), f"{ind}: {col} differs even without a mediator chain"
+
+
 def test_predict_in_sample_does_not_depend_on_seed_or_k():
     """In-sample fit uses the whole dataset, so it is invariant under k/seed."""
     fit = _satisfaction_plspm()

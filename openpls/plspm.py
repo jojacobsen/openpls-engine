@@ -395,6 +395,7 @@ class Plspm:
         k: int = 10,
         repeats: int = 1,
         seed: int | None = 42,
+        lm_predictor_set: str = "direct",
     ) -> PLSPredict:
         """PLSpredict: out-of-sample predictive power via k-fold CV.
 
@@ -406,6 +407,11 @@ class Plspm:
             repeats: how many times to shuffle and re-fold (default 1).
             seed: random seed for the fold shuffle. Pass ``None`` for
                 non-deterministic.
+            lm_predictor_set: which LV block feeds the LM benchmark.
+                ``"direct"`` (default) uses the LV's direct path predecessors;
+                ``"earliest_antecedents"`` walks upstream through every
+                mediator and uses only the exogenous LVs at the top of the
+                DAG (Shmueli/Hair/Ringle 2019 convention, matches SmartPLS).
 
         Returns:
             a :class:`.predict.PLSPredict` instance. Call ``metrics()`` for
@@ -419,6 +425,7 @@ class Plspm:
             k=k,
             repeats=repeats,
             seed=seed,
+            lm_predictor_set=lm_predictor_set,
         )
 
     def vif(self) -> VIF:
