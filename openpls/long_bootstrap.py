@@ -43,6 +43,7 @@ from scipy.stats import norm
 
 from openpls.config import Config
 from openpls.scheme import Scheme
+from openpls.specific_indirect import enumerate_chains
 
 
 def _flip_signs(samples: np.ndarray, reference: float) -> np.ndarray:
@@ -57,13 +58,25 @@ def _flip_signs(samples: np.ndarray, reference: float) -> np.ndarray:
     return out
 
 
+def _percentile_ci(samples: np.ndarray, alpha: float) -> tuple[float, float]:
+    """Plain two-sided percentile CI at level ``1 - alpha``."""
+    samples = samples[~np.isnan(samples)]
+    if samples.size == 0:
+        return float("nan"), float("nan")
+    return (
+        float(np.quantile(samples, alpha / 2)),
+        float(np.quantile(samples, 1 - alpha / 2)),
+    )
+
+
 def _bca_ci(
     samples: np.ndarray,
     point: float,
     alpha: float,
 ) -> tuple[float, float]:
-    """Bias-corrected percentile CI. Falls back to plain percentiles if the
-    bias-correction is undefined (all samples on one side of the point)."""
+    """Bias-corrected percentile CI (Efron 1987). Falls back to plain
+    percentiles if the bias-correction is undefined (all samples on one side
+    of the point)."""
     samples = samples[~np.isnan(samples)]
     if samples.size == 0:
         return float("nan"), float("nan")
@@ -85,6 +98,22 @@ def _bca_ci(
     )
 
 
+def _two_sided_bootstrap_p(samples: np.ndarray, point: float) -> float:
+    """Two-sided p-value derived from the bootstrap distribution centred at zero.
+
+    Uses the recentred distribution ``samples - mean(samples)`` so that the
+    null hypothesis of zero effect is what the resamples are tested against
+    (Davison & Hinkley 1997, §4.4)."""
+    valid = samples[~np.isnan(samples)]
+    if valid.size < 2 or np.isnan(point) or point == 0.0:
+        return float("nan")
+    recentred = valid - valid.mean()
+    extreme = np.sum(np.abs(recentred) >= abs(point))
+    # +1 / +1 smoothing keeps the p-value strictly in (0, 1] even when no
+    # resample is as extreme as the point estimate.
+    return float((extreme + 1) / (valid.size + 1))
+
+
 def _aggregate(samples: np.ndarray, point: float, alpha: float) -> dict[str, float]:
     flipped = _flip_signs(samples, point)
     valid = flipped[~np.isnan(flipped)]
@@ -96,22 +125,83 @@ def _aggregate(samples: np.ndarray, point: float, alpha: float) -> dict[str, flo
             "p_value": float("nan"),
             "ci_lower": float("nan"),
             "ci_upper": float("nan"),
+            "ci_percentile_lower": float("nan"),
+            "ci_percentile_upper": float("nan"),
+            "ci_bc_lower": float("nan"),
+            "ci_bc_upper": float("nan"),
+            "p_value_bootstrap": float("nan"),
             "valid": int(valid.size),
         }
     mean = float(valid.mean())
     se = float(valid.std(ddof=1))
     t_val = float(point / se) if se > 0 and not np.isnan(point) else float("nan")
     p_val = float(2 * (1 - norm.cdf(abs(t_val)))) if not np.isnan(t_val) else float("nan")
-    ci_lo, ci_hi = _bca_ci(valid, point, alpha)
+    perc_lo, perc_hi = _percentile_ci(valid, alpha)
+    bc_lo, bc_hi = _bca_ci(valid, point, alpha)
+    p_boot = _two_sided_bootstrap_p(valid, point)
     return {
         "boot_mean": mean,
         "se": se,
         "t": t_val,
         "p_value": p_val,
-        "ci_lower": ci_lo,
-        "ci_upper": ci_hi,
+        # Backwards-compatible ``ci_lower`` / ``ci_upper`` keep the BC bounds
+        # so existing consumers see the same numbers.
+        "ci_lower": bc_lo,
+        "ci_upper": bc_hi,
+        "ci_percentile_lower": perc_lo,
+        "ci_percentile_upper": perc_hi,
+        "ci_bc_lower": bc_lo,
+        "ci_bc_upper": bc_hi,
+        "p_value_bootstrap": p_boot,
         "valid": int(valid.size),
     }
+
+
+_INFERENCE_RENAME = {
+    "boot_mean": "mean",
+    "se": "std_error",
+    "t": "t_value",
+    "p_value_bootstrap": "p_value",
+    "ci_percentile_lower": "ci_percentile_2_5",
+    "ci_percentile_upper": "ci_percentile_97_5",
+    "ci_bc_lower": "ci_bc_2_5",
+    "ci_bc_upper": "ci_bc_97_5",
+}
+
+_INFERENCE_COLUMNS = [
+    "original",
+    "mean",
+    "std_error",
+    "t_value",
+    "p_value",
+    "ci_percentile_2_5",
+    "ci_percentile_97_5",
+    "ci_bc_2_5",
+    "ci_bc_97_5",
+]
+
+
+def _to_inference(df: pd.DataFrame, id_cols: list[str]) -> pd.DataFrame:
+    """Project an internal aggregator frame onto the public inference schema.
+
+    Renames the verbose internal column names to the canonical inference names
+    (``mean``, ``std_error``, ``t_value``, ``p_value``, ``ci_percentile_*``,
+    ``ci_bc_*``) and orders columns as ``id_cols`` followed by the inference
+    columns. Missing columns are filled with NaN so callers can rely on the
+    schema regardless of the entity type.
+    """
+    if df.empty:
+        empty_cols = id_cols + _INFERENCE_COLUMNS
+        return pd.DataFrame(columns=empty_cols)
+    # Drop the legacy normal-approx ``p_value`` so the bootstrap-based
+    # ``p_value_bootstrap`` rename does not collide.
+    projected = df.drop(columns=["p_value"], errors="ignore")
+    renamed = projected.rename(columns=_INFERENCE_RENAME)
+    cols = id_cols + _INFERENCE_COLUMNS
+    for col in cols:
+        if col not in renamed.columns:
+            renamed[col] = float("nan")
+    return renamed.loc[:, cols].reset_index(drop=True)
 
 
 class LongBootstrap:
@@ -259,10 +349,19 @@ class LongBootstrap:
 
         self.__completed = completed
         self.__failed = failed
+        self.__boot_paths = boot_paths
+        self.__boot_outer_loading = boot_outer_loading
+        self.__boot_outer_weight = boot_outer_weight
+        self.__boot_total = boot_total
+        self.__point_paths = point_paths
+        self.__point_total = point_total
         self.__paths_df = self.__aggregate_paths(point_paths, boot_paths)
         self.__loadings_df = self.__aggregate_outer(point_outer, boot_outer_loading, "loading")
         self.__weights_df = self.__aggregate_outer(point_outer, boot_outer_weight, "weight")
         self.__total_df = self.__aggregate_total(point_total, boot_total)
+        self.__sie_df, self.__tie_df = self.__aggregate_indirect(
+            point_paths, boot_paths, point_total, boot_total
+        )
 
     def __aggregate_paths(self, point_paths: pd.DataFrame, samples: np.ndarray) -> pd.DataFrame:
         rows: list[dict[str, Any]] = []
@@ -302,6 +401,80 @@ class LongBootstrap:
                 rows.append({"source": src, "target": tgt, "original": point_val, **stats})
         return pd.DataFrame(rows)
 
+    def __aggregate_indirect(
+        self,
+        point_paths: pd.DataFrame,
+        boot_paths: np.ndarray,
+        point_total: np.ndarray,
+        boot_total: np.ndarray,
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
+        """Compute specific indirect effects (one per chain) and total indirect
+        effects (one per source/target pair) with full inference."""
+        path_matrix = self.__config.path()
+        edge_index = {(src, tgt): k for k, (src, tgt) in enumerate(self.__path_keys)}
+
+        sie_rows: list[dict[str, Any]] = []
+        tie_rows: list[dict[str, Any]] = []
+
+        for src in self.__lv_names:
+            for tgt in self.__lv_names:
+                if src == tgt:
+                    continue
+                try:
+                    chains = enumerate_chains(path_matrix, src, tgt)
+                except (KeyError, ValueError):
+                    chains = []
+                if not chains:
+                    continue
+
+                chain_products = []
+                for chain in chains:
+                    edge_keys = list(zip(chain[:-1], chain[1:]))
+                    if any(k not in edge_index for k in edge_keys):
+                        continue
+                    cols = [edge_index[k] for k in edge_keys]
+                    sample_prod = np.prod(boot_paths[:, cols], axis=1)
+                    point_prod = 1.0
+                    for a, b in edge_keys:
+                        point_prod *= float(point_paths.loc[b, a])
+                    chain_products.append((chain, sample_prod, point_prod))
+                    via = list(chain[1:-1])
+                    stats = _aggregate(sample_prod, point_prod, self.__alpha)
+                    sie_rows.append({
+                        "source": src,
+                        "target": tgt,
+                        "via": " -> ".join(via),
+                        "original": point_prod,
+                        **stats,
+                    })
+
+                if not chain_products:
+                    continue
+                # Total indirect effect = sum of all specific indirect chain
+                # products (Nitzl, Roldan & Cepeda 2016). Equivalent to
+                # ``total - direct`` but computed directly so it covers cases
+                # without a direct edge.
+                tie_sample = np.zeros_like(chain_products[0][1])
+                tie_point = 0.0
+                for _, sample_prod, point_prod in chain_products:
+                    tie_sample = tie_sample + sample_prod
+                    tie_point += point_prod
+                stats = _aggregate(tie_sample, tie_point, self.__alpha)
+                tie_rows.append({
+                    "source": src,
+                    "target": tgt,
+                    "original": tie_point,
+                    **stats,
+                })
+
+        sie = pd.DataFrame(sie_rows) if sie_rows else pd.DataFrame(
+            columns=["source", "target", "via", "original"]
+        )
+        tie = pd.DataFrame(tie_rows) if tie_rows else pd.DataFrame(
+            columns=["source", "target", "original"]
+        )
+        return sie, tie
+
     @property
     def completed(self) -> int:
         """Number of resamples that fitted successfully."""
@@ -332,3 +505,82 @@ class LongBootstrap:
     def total_effects(self) -> pd.DataFrame:
         """Total-effect bootstrap statistics for every non-trivial LV pair."""
         return self.__total_df
+
+    def specific_indirect_effects(self) -> pd.DataFrame:
+        """Per-chain specific indirect effects with bootstrap inference.
+
+        Each row is one ``source -> via... -> target`` chain (length >= 3 in
+        the structural model). For models without any indirect chain the
+        result is an empty DataFrame.
+        """
+        return self.__sie_df
+
+    def total_indirect_effects(self) -> pd.DataFrame:
+        """Total indirect effects (sum across chains) per source/target pair."""
+        return self.__tie_df
+
+    @property
+    def inference(self) -> dict[str, pd.DataFrame]:
+        """Unified bootstrap inference tables keyed by entity type.
+
+        Returns a dict with six entries:
+
+        - ``pathCoefficients``: direct structural paths.
+        - ``outerLoadings``: indicator loadings.
+        - ``outerWeights``: indicator weights.
+        - ``specificIndirectEffects``: per-chain indirect effects.
+        - ``totalIndirectEffects``: aggregate indirect effect per LV pair.
+        - ``totalEffects``: direct + indirect per LV pair.
+
+        Every DataFrame exposes the canonical inference columns:
+        ``original``, ``mean``, ``std_error``, ``t_value``, ``p_value``,
+        ``ci_percentile_2_5``, ``ci_percentile_97_5``, ``ci_bc_2_5``,
+        ``ci_bc_97_5``. Identifier columns vary per entity (``source``/
+        ``target`` for structural quantities, ``lv``/``indicator`` for outer
+        quantities, with an extra ``via`` for specific indirect effects).
+        """
+        return {
+            "pathCoefficients": _to_inference(self.__paths_df, ["source", "target"]),
+            "outerLoadings": _to_inference(self.__loadings_df, ["lv", "indicator"]),
+            "outerWeights": _to_inference(self.__weights_df, ["lv", "indicator"]),
+            "specificIndirectEffects": _to_inference(
+                self.__sie_df, ["source", "target", "via"]
+            ),
+            "totalIndirectEffects": _to_inference(self.__tie_df, ["source", "target"]),
+            "totalEffects": _to_inference(self.__total_df, ["source", "target"]),
+        }
+
+    @property
+    def resamples(self) -> dict[str, np.ndarray]:
+        """Raw per-resample arrays kept for downstream analyses (e.g. MGA).
+
+        Each entry is a NumPy array indexed by iteration along axis 0:
+
+        - ``pathCoefficients``: shape ``(iterations, n_paths)`` aligned with
+          :attr:`path_keys`.
+        - ``outerLoadings`` / ``outerWeights``: shape ``(iterations,
+          n_indicators)`` aligned with :attr:`outer_keys`.
+        - ``totalEffects``: shape ``(iterations, n_lvs, n_lvs)`` aligned with
+          :attr:`lv_names`.
+        """
+        return {
+            "pathCoefficients": self.__boot_paths,
+            "outerLoadings": self.__boot_outer_loading,
+            "outerWeights": self.__boot_outer_weight,
+            "totalEffects": self.__boot_total,
+        }
+
+    @property
+    def path_keys(self) -> list[tuple[str, str]]:
+        """Direct path identifiers (``source``, ``target``) used by :attr:`resamples`."""
+        return list(self.__path_keys)
+
+    @property
+    def outer_keys(self) -> list[tuple[str, str]]:
+        """Outer model identifiers (``lv``, ``indicator``) used by :attr:`resamples`."""
+        return list(self.__outer_keys)
+
+    @property
+    def lv_names(self) -> list[str]:
+        """Latent variable ordering used by :attr:`resamples` total effects."""
+        return list(self.__lv_names)
