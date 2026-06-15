@@ -9,6 +9,27 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [1.8.0] - 2026-06-13
+
+Maintenance release. No engine API changes, no behavioral changes. Fixes the
+PyPI project page (its Markdown renderer cannot resolve repo-relative links)
+and locks the developer / CI / Read-the-Docs environment to a known-good set
+of dependency versions verified to install across Python 3.10–3.13.
+
+### Changed
+- **PyPI project page** now links the Changelog to
+  `https://openpls.app/engine/changelog/`. PyPI strips repo-relative
+  `CHANGELOG.md` links from rendered READMEs, so the previous link silently
+  vanished on the project page. The `[project.urls]` table in
+  `pyproject.toml` also gains an explicit `Changelog` entry which surfaces
+  in the PyPI sidebar.
+- **`requirements.txt`** now pins exact versions for the developer
+  toolchain (pandas, numpy, scipy, statsmodels, scikit-learn, pytest,
+  setuptools, wheel, twine, sphinx, m2r) instead of unpinned floats. The
+  install metadata in `pyproject.toml` keeps the loose floor ranges so
+  consumers are not over-constrained. The pinned set is the matrix the CI
+  job and the Read-the-Docs build run against on every push.
+
 ## [1.7.0] - 2026-06-12
 
 Extends the PLSc consistent-PLS layer with first-class direct / indirect /
