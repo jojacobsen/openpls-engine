@@ -23,14 +23,14 @@
   &nbsp;·&nbsp;
   <a href="https://openpls.app/engine/api/">API reference</a>
   &nbsp;·&nbsp;
-  <a href="CHANGELOG.md">Changelog</a>
+  <a href="https://openpls.app/engine/changelog/">Changelog</a>
 </p>
 
 ---
 
 `openpls-engine` is the compute core behind [OpenPLS](https://openpls.app) and a standalone PyPI package. It is a maintained fork of [`plspm-python`](https://github.com/googlecloudplatform/plspm-python) by Jez Humble (Google), with the original algorithm kept intact and modern PLS-SEM reporting, advanced analyses, and two new inner-weighting schemes layered on top.
 
-> **Status: stable as of 1.0.0.** Public API follows semver. See [CHANGELOG.md](CHANGELOG.md) for the version history.
+> **Status: stable as of 1.0.0.** Public API follows semver. See the [changelog](https://openpls.app/engine/changelog/) for the version history.
 
 ## Install
 

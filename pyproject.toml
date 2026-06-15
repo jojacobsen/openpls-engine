@@ -35,6 +35,7 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/jojacobsen/openpls-engine"
 Documentation = "https://openpls.app/engine/"
+Changelog = "https://openpls.app/engine/changelog/"
 Issues = "https://github.com/jojacobsen/openpls-engine/issues"
 "OpenPLS web app" = "https://openpls.app"
 "Upstream (plspm-python)" = "https://github.com/googlecloudplatform/plspm-python"
