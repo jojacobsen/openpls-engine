@@ -125,7 +125,7 @@ CI runs lint and tests on Python 3.10 through 3.13 against every push and pull r
 
 If you use `openpls-engine` in academic work, please cite the validation paper alongside the software:
 
-- **Validation paper (SSRN)** — Jacob, Johannes (2026). *OpenPLS Engine: An Open-Source Implementation of Partial Least Squares Structural Equation Modeling Validated Against SmartPLS 4 Across 14 Reference Cases.* SSRN working paper. [doi:10.2139/ssrn.6869001](https://doi.org/10.2139/ssrn.6869001).
+- **Validation paper** — Jacob, Johannes (2026). *OpenPLS Engine: An Open-Source Implementation of Partial Least Squares Structural Equation Modeling Validated Against SmartPLS 4 Across 14 Reference Cases.* Posted on SSRN. [doi:10.2139/ssrn.6869001](https://doi.org/10.2139/ssrn.6869001).
 - **Software** — [Zenodo DOI 10.5281/zenodo.20509385](https://doi.org/10.5281/zenodo.20509385).
 - **Validation dataset** — [Zenodo DOI 10.5281/zenodo.20511533](https://doi.org/10.5281/zenodo.20511533).
 
