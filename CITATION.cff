@@ -33,8 +33,10 @@ preferred-citation:
       given-names: Johannes
       orcid: "https://orcid.org/0009-0007-5488-8446"
   year: 2026
+  month: 6
+  doi: "10.2139/ssrn.6869001"
   url: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6869001"
-  notes: "SSRN preprint, Abstract ID 6869001. Goes live after editor approval (24-48h after submission on 2026-06-02)."
+  notes: "SSRN preprint, Abstract ID 6869001. Published 2026-06-17."
 references:
   - type: data
     title: "Supplementary Validation Materials for OpenPLS Engine v1.0.2"
