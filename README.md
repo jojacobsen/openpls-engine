@@ -14,6 +14,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPLv3+-blue.svg" alt="License: GPL-3.0-or-later"></a>
   <a href="https://doi.org/10.5281/zenodo.20509385"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.20509385.svg" alt="DOI"></a>
   <a href="https://doi.org/10.5281/zenodo.20511533"><img src="https://img.shields.io/badge/validation%20data-10.5281%2Fzenodo.20511533-blue" alt="Validation DOI"></a>
+  <a href="https://doi.org/10.2139/ssrn.6869001"><img src="https://img.shields.io/badge/paper-SSRN%2010.2139%2Fssrn.6869001-blue" alt="Validation paper (SSRN)"></a>
 </p>
 
 <p align="center">
@@ -122,7 +123,13 @@ CI runs lint and tests on Python 3.10 through 3.13 against every push and pull r
 
 ## Cite
 
-If you use `openpls-engine` in academic work, please cite the software via its [Zenodo DOI](https://doi.org/10.5281/zenodo.20509385) and the validation dataset via [10.5281/zenodo.20511533](https://doi.org/10.5281/zenodo.20511533). See [`CITATION.cff`](CITATION.cff) for the structured metadata.
+If you use `openpls-engine` in academic work, please cite the validation paper alongside the software:
+
+- **Validation paper** — Jacob, Johannes (2026). *OpenPLS Engine: An Open-Source Implementation of Partial Least Squares Structural Equation Modeling Validated Against SmartPLS 4 Across 14 Reference Cases.* Posted on SSRN. [doi:10.2139/ssrn.6869001](https://doi.org/10.2139/ssrn.6869001).
+- **Software** — [Zenodo DOI 10.5281/zenodo.20509385](https://doi.org/10.5281/zenodo.20509385).
+- **Validation dataset** — [Zenodo DOI 10.5281/zenodo.20511533](https://doi.org/10.5281/zenodo.20511533).
+
+Structured metadata is in [`CITATION.cff`](CITATION.cff); GitHub renders a "Cite this repository" button from it.
 
 ## License
 
