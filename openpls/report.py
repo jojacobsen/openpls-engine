@@ -61,13 +61,13 @@ class Report:
         ``rho_c``, ``ave``. Mode B (formative) and single-indicator LVs
         receive ``NaN`` for the metrics that are undefined for them.
         """
-        uni = self._plspm.unidimensionality()
+        rel = self._plspm.reliability()
         inner = self._plspm.inner_summary()
         out = pd.DataFrame({
-            "mode": uni["mode"],
-            "mvs": uni["mvs"].astype("Int64"),
-            "cronbach_alpha": uni["cronbach_alpha"],
-            "rho_c": uni["dillon_goldstein_rho"],
+            "mode": rel["mode"],
+            "mvs": rel["mvs"].astype("Int64"),
+            "cronbach_alpha": rel["cronbach_alpha"],
+            "rho_c": rel["dillon_goldstein_rho"],
             "ave": inner["ave"],
         })
         if self._include_rho_a:
@@ -124,8 +124,8 @@ class Report:
         ``block_communality``, ``mean_redundancy``.
         """
         inner = self._plspm.inner_summary().copy()
-        uni = self._plspm.unidimensionality()
-        inner["mvs"] = uni["mvs"].astype("Int64")
+        rel = self._plspm.reliability()
+        inner["mvs"] = rel["mvs"].astype("Int64")
         return inner.loc[:, [
             "type", "mvs", "r_squared", "r_squared_adj", "bic",
             "block_communality", "mean_redundancy",

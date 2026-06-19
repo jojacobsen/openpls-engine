@@ -79,3 +79,33 @@ def test_htmt_skips_single_indicator_lv():
     assert math.isnan(htmt.loc["EXPE", "IMAG"])
     # The pairs() view should drop the NaN pair.
     assert plspm_calc.htmt().pairs().empty
+
+
+def test_htmt_skips_formative_lvs():
+    """HTMT is only defined for reflectively measured (Mode A) constructs.
+    Pairs that involve a Mode B (formative) LV must be NaN.
+    """
+    satisfaction = pd.read_csv("file:tests/data/satisfaction.csv", index_col=0)
+    structure = c.Structure()
+    structure.add_path(["IMAG"], ["EXPE", "SAT", "LOY"])
+    structure.add_path(["EXPE"], ["QUAL", "VAL", "SAT"])
+    structure.add_path(["QUAL"], ["VAL", "SAT"])
+    structure.add_path(["VAL"], ["SAT"])
+    structure.add_path(["SAT"], ["LOY"])
+    config = c.Config(structure.path(), scaled=False)
+    # IMAG declared as formative; the other five remain reflective.
+    config.add_lv_with_columns_named("IMAG", Mode.B, satisfaction, "imag")
+    for lv in ["EXPE", "QUAL", "VAL", "SAT", "LOY"]:
+        config.add_lv_with_columns_named(lv, Mode.A, satisfaction, lv.lower())
+
+    plspm_calc = Plspm(satisfaction, config, Scheme.CENTROID)
+    htmt = plspm_calc.htmt().matrix()
+    # Every pair involving IMAG is NaN.
+    for other in ["EXPE", "QUAL", "VAL", "SAT", "LOY"]:
+        assert math.isnan(htmt.loc["IMAG", other])
+        assert math.isnan(htmt.loc[other, "IMAG"])
+    # The remaining 5 reflective LVs still produce 10 finite pairs.
+    pairs = plspm_calc.htmt().pairs()
+    assert len(pairs) == 10
+    names = set(pairs["lv_a"]).union(set(pairs["lv_b"]))
+    assert "IMAG" not in names

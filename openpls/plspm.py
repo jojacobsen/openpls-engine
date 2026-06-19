@@ -40,10 +40,10 @@ from openpls.micom import MICOM
 from openpls.plsc import PLSc
 from openpls.predict import PLSPredict
 from openpls.q_squared import QSquared
+from openpls.reliability import Reliability
 from openpls.report import Report
 from openpls.scheme import Scheme
 from openpls.specific_indirect import specific_indirect_point
-from openpls.unidimensionality import Unidimensionality
 from openpls.vif import VIF
 
 
@@ -53,7 +53,7 @@ class Plspm:
     Create an instance of this class in order to estimate a path model using the partial least squares algorithm.
     When the algorithm has performed the calculations to create the estimate, you can then retrieve the inner and outer
     models, scores, the path coefficients, effects, and reliability indicators such as goodness-of-fit
-    and unidimensionality. Bootstrapping results can also be retrieved if they were requested.
+    and per-block reliability (Cronbach alpha, Dillon-Goldstein rho_c). Bootstrapping results can also be retrieved if they were requested.
     """
 
     def __init__(self, data: pd.DataFrame, config: c.Config, scheme: Scheme = Scheme.CENTROID,
@@ -110,7 +110,7 @@ class Plspm:
         self.__inner_summary = pis.InnerSummary(config, self.__inner_model.r_squared(),
                                                 self.__inner_model.r_squared_adj(), self.__outer_model.model(),
                                                 n_obs=filtered_data.shape[0])
-        self.__unidimensionality = Unidimensionality(config, filtered_data, correction)
+        self.__reliability = Reliability(config, filtered_data, correction)
         self.__model_fit = ModelFit(config, final_data, scores, self.__outer_model.model())
         self.__htmt = HTMT(config, final_data)
         self.__scores = scores
@@ -330,13 +330,34 @@ class Plspm:
         """
         return Report(self, include_rho_a=include_rho_a, include_htmt2=include_htmt2)
 
-    def unidimensionality(self) -> pd.DataFrame:
-        """Gets the results of checking the unidimensionality of blocks (only meaningful for reflective / mode A blocks)
+    def reliability(self) -> pd.DataFrame:
+        """Per-block reliability summary (Cronbach's alpha, Dillon-Goldstein rho_c)
+        and the eigenvalues of the first two principal components. Only meaningful
+        for reflective (Mode A) blocks; for Mode B blocks the reliability
+        columns are ``NaN``.
 
         Returns:
-            a DataFrame with the latent variables as the index, and columns for Cronbach's Alpha, Dillon-Goldstein Rho, and the eigenvalues of the first and second principal components.
+            a DataFrame indexed by latent variable with columns ``mode``, ``mvs``,
+            ``cronbach_alpha``, ``dillon_goldstein_rho``, ``eig_1st``, ``eig_2nd``.
         """
-        return self.__unidimensionality.summary()
+        return self.__reliability.summary()
+
+    def unidimensionality(self) -> pd.DataFrame:
+        """Deprecated alias for :meth:`reliability`.
+
+        The metrics in this table (Cronbach's alpha, Dillon-Goldstein rho_c)
+        measure reliability, not unidimensionality. Use :meth:`reliability`
+        instead; this shim will be removed in a future release.
+        """
+        import warnings
+        warnings.warn(
+            "Plspm.unidimensionality() is deprecated; use Plspm.reliability() instead. "
+            "Cronbach's alpha and Dillon-Goldstein rho_c measure reliability, "
+            "not unidimensionality.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.__reliability.summary()
 
     def htmt(self) -> HTMT:
         """Gets the Heterotrait-Monotrait Ratio of Correlations.
