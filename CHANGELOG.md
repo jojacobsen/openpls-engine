@@ -9,6 +9,33 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [1.9.0] - 2026-06-19
+
+Addresses two engine-side items from Florian Schuberth's technical review
+of OpenPLS (2026-06-18): HTMT/HTMT2 are now correctly gated to reflective
+constructs, and the `Unidimensionality` class has been renamed to
+`Reliability` to match what it actually measures.
+
+### Changed
+- **HTMT and HTMT2** now return `NaN` for any latent-variable pair that
+  involves a formative (Mode B) construct. Both metrics estimate the
+  correlation between *reflectively measured* latent variables; applying
+  them to formative blocks produced misleading discriminant-validity
+  numbers. The reflective-only restriction is now enforced inside
+  `openpls.htmt.HTMT` and `openpls.htmt2.HTMT2`. Mode A pairs are
+  unaffected.
+- **`Unidimensionality` → `Reliability`** (#schuberth-review). The class
+  that computes Cronbach's α and Dillon-Goldstein ρ_c has been renamed to
+  `openpls.reliability.Reliability`; those metrics measure reliability,
+  not unidimensionality (which is a stricter psychometric concept).
+  `Plspm.reliability()` is the new accessor.
+
+### Deprecated
+- **`openpls.unidimensionality.Unidimensionality`** and
+  **`Plspm.unidimensionality()`** now emit `DeprecationWarning` and forward
+  to the new names. Behaviour is identical; the old names will be removed
+  in a future major release.
+
 ## [1.8.0] - 2026-06-13
 
 Maintenance release. No engine API changes, no behavioral changes. Fixes the

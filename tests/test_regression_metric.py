@@ -83,9 +83,9 @@ def test_plspm_satisfaction():
     npt.assert_allclose(expected_effects.drop(["from", "to"], axis=1).sort_index(),
                         plspm_calc.effects().drop(["from", "to"], axis=1).sort_index())
 
-    expected_unidimensionality = pd.read_csv("file:tests/data/satisfaction_unidim.csv", index_col=0)
-    npt.assert_allclose(util.sort_cols(expected_unidimensionality.drop(["mode"], axis=1)).sort_index(),
-                        util.sort_cols(plspm_calc.unidimensionality().drop(["mode"], axis=1)).sort_index())
+    expected_reliability = pd.read_csv("file:tests/data/satisfaction_unidim.csv", index_col=0)
+    npt.assert_allclose(util.sort_cols(expected_reliability.drop(["mode"], axis=1)).sort_index(),
+                        util.sort_cols(plspm_calc.reliability().drop(["mode"], axis=1)).sort_index())
 
     assert math.isclose(0.609741624338411,plspm_calc.goodness_of_fit())
 

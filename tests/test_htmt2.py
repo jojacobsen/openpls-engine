@@ -125,6 +125,33 @@ def test_htmt2_skips_single_indicator_lv():
     assert plspm_calc.htmt2().pairs().empty
 
 
+def test_htmt2_skips_formative_lvs():
+    """HTMT2, like HTMT, is only defined for reflective (Mode A) blocks.
+    Pairs that involve a formative (Mode B) construct must be NaN.
+    """
+    satisfaction = pd.read_csv("file:tests/data/satisfaction.csv", index_col=0)
+    structure = c.Structure()
+    structure.add_path(["IMAG"], ["EXPE", "SAT", "LOY"])
+    structure.add_path(["EXPE"], ["QUAL", "VAL", "SAT"])
+    structure.add_path(["QUAL"], ["VAL", "SAT"])
+    structure.add_path(["VAL"], ["SAT"])
+    structure.add_path(["SAT"], ["LOY"])
+    config = c.Config(structure.path(), scaled=False)
+    config.add_lv_with_columns_named("IMAG", Mode.B, satisfaction, "imag")
+    for lv in ["EXPE", "QUAL", "VAL", "SAT", "LOY"]:
+        config.add_lv_with_columns_named(lv, Mode.A, satisfaction, lv.lower())
+
+    plspm_calc = Plspm(satisfaction, config, Scheme.CENTROID)
+    matrix = plspm_calc.htmt2().matrix()
+    for other in ["EXPE", "QUAL", "VAL", "SAT", "LOY"]:
+        assert math.isnan(matrix.loc["IMAG", other])
+        assert math.isnan(matrix.loc[other, "IMAG"])
+    pairs = plspm_calc.htmt2().pairs()
+    assert len(pairs) == 10
+    names = set(pairs["lv_a"]).union(set(pairs["lv_b"]))
+    assert "IMAG" not in names
+
+
 def test_htmt2_is_cached_across_calls():
     plspm_calc = _satisfaction_plspm()
     a = plspm_calc.htmt2()

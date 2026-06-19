@@ -51,17 +51,17 @@ def test_reliability_without_rho_a():
 
 def test_reliability_values_match_underlying_methods():
     fit = _fit_satisfaction()
-    rel = fit.report().reliability()
-    uni = fit.unidimensionality()
+    report_rel = fit.report().reliability()
+    rel = fit.reliability()
     inner = fit.inner_summary()
-    for lv in rel.index:
+    for lv in report_rel.index:
         npt.assert_allclose(
-            rel.loc[lv, "cronbach_alpha"], uni.loc[lv, "cronbach_alpha"], atol=1e-12
+            report_rel.loc[lv, "cronbach_alpha"], rel.loc[lv, "cronbach_alpha"], atol=1e-12
         )
         npt.assert_allclose(
-            rel.loc[lv, "rho_c"], uni.loc[lv, "dillon_goldstein_rho"], atol=1e-12
+            report_rel.loc[lv, "rho_c"], rel.loc[lv, "dillon_goldstein_rho"], atol=1e-12
         )
-        npt.assert_allclose(rel.loc[lv, "ave"], inner.loc[lv, "ave"], atol=1e-12)
+        npt.assert_allclose(report_rel.loc[lv, "ave"], inner.loc[lv, "ave"], atol=1e-12)
 
 
 def test_discriminant_validity_keys_default():

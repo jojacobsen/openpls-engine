@@ -27,10 +27,10 @@ def _russa_config_mode_a():
 def test_clean_data_reliability_finite():
     russa = pd.read_csv("file:tests/data/russa.csv", index_col=0)
     plspm_calc = Plspm(russa, _russa_config_mode_a(), Scheme.CENTROID, 100, 1e-7)
-    unidim = plspm_calc.unidimensionality()
+    rel = plspm_calc.reliability()
     for lv in ("AGRI", "IND", "POLINS"):
-        assert math.isfinite(float(unidim.loc[lv, "dillon_goldstein_rho"]))
-        assert math.isfinite(float(unidim.loc[lv, "eig_1st"]))
+        assert math.isfinite(float(rel.loc[lv, "dillon_goldstein_rho"]))
+        assert math.isfinite(float(rel.loc[lv, "eig_1st"]))
 
 
 def test_fallback_fires_on_missing_values():
@@ -40,12 +40,12 @@ def test_fallback_fires_on_missing_values():
     russa.iloc[5, 5] = np.nan  # demo/inst column
 
     plspm_calc = Plspm(russa, _russa_config_mode_a(), Scheme.CENTROID, 100, 1e-7)
-    unidim = plspm_calc.unidimensionality()
+    rel = plspm_calc.reliability()
 
     # Every Mode A LV should now report finite reliability + eigenvalues
     for lv in ("AGRI", "IND", "POLINS"):
         for col in ("dillon_goldstein_rho", "eig_1st"):
-            val = float(unidim.loc[lv, col])
+            val = float(rel.loc[lv, col])
             assert math.isfinite(val), f"{lv}/{col} should be finite, got {val}"
 
 
@@ -57,11 +57,11 @@ def test_mode_b_clean_data_alpha_rho_nan():
     config.add_lv("POLINS", Mode.B, c.MV("ecks"), c.MV("death"), c.MV("demo"), c.MV("inst"))
 
     plspm_calc = Plspm(russa, config, Scheme.CENTROID, 100, 1e-7)
-    unidim = plspm_calc.unidimensionality()
+    rel = plspm_calc.reliability()
 
     # alpha and rho are reflective-only — Mode B should keep them NaN
     for lv in ("AGRI", "IND", "POLINS"):
-        assert pd.isna(unidim.loc[lv, "cronbach_alpha"]), lv
-        assert pd.isna(unidim.loc[lv, "dillon_goldstein_rho"]), lv
+        assert pd.isna(rel.loc[lv, "cronbach_alpha"]), lv
+        assert pd.isna(rel.loc[lv, "dillon_goldstein_rho"]), lv
         # eigenvalues are still defined and finite
-        assert math.isfinite(float(unidim.loc[lv, "eig_1st"])), lv
+        assert math.isfinite(float(rel.loc[lv, "eig_1st"])), lv

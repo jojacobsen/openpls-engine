@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 
 import openpls.config as c
+from openpls.mode import Mode
 
 
 class HTMT:
@@ -32,6 +33,11 @@ class HTMT:
     among indicators of the same construct. Single-indicator constructs
     cannot have a within-block mean and are skipped (HTMT is NaN for pairs
     involving them).
+
+    HTMT estimates the correlation between *reflectively measured* latent
+    variables. Pairs that involve a formative (Mode B) construct are not in
+    scope of the metric and are returned as ``NaN`` to avoid misleading
+    discriminant-validity numbers.
 
     Henseler et al. (2015) suggest HTMT < 0.85 (conservative) or < 0.90
     (liberal) as the discriminant-validity threshold.
@@ -80,9 +86,12 @@ class HTMT:
             return float(corr_abs.loc[va, vb].to_numpy().mean())
 
         within = {lv: _mean_within(lv_inds[lv]) for lv in lv_names}
+        reflective = {lv for lv in lv_names if config.mode(lv) == Mode.A}
 
         for i, lv_a in enumerate(lv_names):
             for lv_b in lv_names[i + 1 :]:
+                if lv_a not in reflective or lv_b not in reflective:
+                    continue
                 mw_a, mw_b = within[lv_a], within[lv_b]
                 if mw_a is None or mw_b is None or mw_a <= 0 or mw_b <= 0:
                     continue

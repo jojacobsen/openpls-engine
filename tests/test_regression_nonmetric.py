@@ -150,5 +150,5 @@ def test_plspm_russa_missing_data():
                            check_dtype=False)
     # OpenPLS fix #65: listwise-deletion fallback fills reliability metrics
     # for blocks that contain missing values (upstream `plspm` returned NaN).
-    unidim = plspm_calc.unidimensionality().drop(["mode", "mvs"], axis=1)
-    assert unidim.notna().values.all(), f"reliability metrics unexpectedly NaN:\n{unidim}"
+    rel = plspm_calc.reliability().drop(["mode", "mvs"], axis=1)
+    assert rel.notna().values.all(), f"reliability metrics unexpectedly NaN:\n{rel}"

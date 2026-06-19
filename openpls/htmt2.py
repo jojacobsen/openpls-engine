@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 
 import openpls.config as c
+from openpls.mode import Mode
 
 
 def _gmean(values: np.ndarray) -> float | None:
@@ -56,6 +57,11 @@ class HTMT2:
     arithmetic mean over-weights the strongest indicators. HTMT2
     weighs indicators uniformly on the log-scale and is consistent
     under the tau-equivalent / congeneric measurement model.
+
+    Like HTMT, HTMT2 estimates the correlation between *reflectively
+    measured* latent variables. Pairs that involve a formative (Mode
+    B) construct are returned as ``NaN`` because the metric is not
+    in scope there.
 
     Single-indicator constructs and pairs whose correlations include
     any zero (geometric mean is undefined / zero) are skipped (NaN in
@@ -105,9 +111,12 @@ class HTMT2:
             return _gmean(block)
 
         within = {lv: _gmean_within(lv_inds[lv]) for lv in lv_names}
+        reflective = {lv for lv in lv_names if config.mode(lv) == Mode.A}
 
         for i, lv_a in enumerate(lv_names):
             for lv_b in lv_names[i + 1 :]:
+                if lv_a not in reflective or lv_b not in reflective:
+                    continue
                 gw_a, gw_b = within[lv_a], within[lv_b]
                 if gw_a is None or gw_b is None or gw_a <= 0 or gw_b <= 0:
                     continue
