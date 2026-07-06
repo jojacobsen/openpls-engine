@@ -24,6 +24,7 @@ import openpls.inner_summary as pis
 import openpls.outer_model as om
 import openpls.weights as w
 from openpls.bootstrap import Bootstrap
+from openpls.cmb import CMBLindellWhitney
 from openpls.copula import GaussianCopula
 from openpls.cta import CTAPLS
 from openpls.cvpat import CVPAT
@@ -272,6 +273,38 @@ class Plspm:
             ``correlations()`` (full LV correlation matrix).
         """
         return NomologicalValidity(self.__scores, hypotheses, alpha=alpha)
+
+    def cmb_lindell_whitney(
+        self,
+        marker: pd.Series,
+        alpha: float = 0.05,
+    ) -> CMBLindellWhitney:
+        """Lindell-Whitney (2001) marker-variable CMB diagnostic.
+
+        Estimates a common method variance proxy ``r_M`` from the
+        smallest absolute correlation between the marker and each
+        substantive latent variable, then partial-correlates every
+        substantive pair by ``r_M`` and recomputes its two-sided
+        p-value at ``n - 3`` degrees of freedom. If a pair loses
+        significance after adjustment, common method variance is a
+        plausible confound for that pair (Lindell & Whitney 2001;
+        Malhotra, Kim & Patil 2006).
+
+        Not cached: pass the marker series on each call.
+
+        Args:
+            marker: series of marker-variable values aligned to the
+                sample index. Rows with ``NaN`` in either the marker
+                or a substantive LV are dropped pairwise.
+            alpha: significance level for the two-sided tests
+                (default ``0.05``).
+
+        Returns:
+            an instance of :class:`.cmb.CMBLindellWhitney` exposing
+            ``marker_correlations()``, ``cmb_estimate()``,
+            ``unadjusted()``, ``adjusted()``, and ``table()``.
+        """
+        return CMBLindellWhitney(self.__scores, marker, alpha=alpha)
 
     def fornell_larcker(self) -> FornellLarcker:
         """Fornell-Larcker discriminant-validity criterion (1981).

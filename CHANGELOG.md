@@ -26,6 +26,17 @@ package and publishes it to PyPI via OIDC trusted publishing.
   returns one test per endogenous LV, and ``losses()`` exposes the
   per-observation loss table. See Liengaard et al. (2021) in Decision
   Sciences.
+- **Common Method Bias diagnostic** (Lindell & Whitney 2001 marker-variable
+  procedure). New `openpls.cmb.CMBLindellWhitney` class, exposed as
+  `Plspm.cmb_lindell_whitney(marker, alpha=0.05)`. Takes a marker
+  variable theoretically unrelated to any substantive construct,
+  estimates the common method variance proxy `r_M` from the smallest
+  absolute marker-construct correlation, and partial-correlates every
+  substantive LV pair by `r_M`. Reports per-pair verdicts —
+  `lost_significance`, `gained_significance`, or `unchanged` — so
+  researchers can flag pairs whose observed correlation may be inflated
+  by shared response method. See Lindell & Whitney (2001) and
+  Malhotra, Kim & Patil (2006).
 - **`Plspm.nomological_validity(hypotheses, alpha=0.05)`** — directional
   hypothesis testing on latent-variable correlations. Each hypothesis is
   a triple ``(source, target, expected_sign)`` with ``expected_sign`` in
