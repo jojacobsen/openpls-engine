@@ -9,34 +9,16 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
-## [Unreleased]
+## [1.10.0] - 2026-07-06
+
+Three additive research-methodology diagnostics: directional hypothesis
+testing on LV correlations (nomological validity), the Lindell-Whitney
+marker-variable common-method-bias check, and the paired Cross-Validated
+Predictive Ability Test (CVPAT) that reviewers increasingly expect
+alongside PLSpredict. All APIs are additive — no existing behaviour or
+signatures changed.
 
 ### Added
-- **Cross-Validated Predictive Ability Test** (CVPAT, Liengaard et al.
-  2021). New `openpls.cvpat.CVPAT` class, exposed as
-  `Plspm.cvpat(benchmark="IA", k=10, repeats=1, seed=42, alpha=0.05)`.
-  Runs k-fold cross-validation, sums per-observation squared prediction
-  errors across endogenous indicators under (a) PLS-SEM and (b) a
-  benchmark, then runs a one-sided paired t-test on the loss
-  differences ``d_i = loss_i^PLS - loss_i^benchmark`` under
-  ``H_0: E[d] >= 0``. Two benchmarks are supported: ``"IA"`` (indicator
-  average — the naive Q²_predict baseline) and ``"LM"`` (direct-
-  antecedents linear regression on the target indicator).
-  ``overall()`` returns the model-level test, ``per_construct()``
-  returns one test per endogenous LV, and ``losses()`` exposes the
-  per-observation loss table. See Liengaard et al. (2021) in Decision
-  Sciences.
-- **Common Method Bias diagnostic** (Lindell & Whitney 2001 marker-variable
-  procedure). New `openpls.cmb.CMBLindellWhitney` class, exposed as
-  `Plspm.cmb_lindell_whitney(marker, alpha=0.05)`. Takes a marker
-  variable theoretically unrelated to any substantive construct,
-  estimates the common method variance proxy `r_M` from the smallest
-  absolute marker-construct correlation, and partial-correlates every
-  substantive LV pair by `r_M`. Reports per-pair verdicts —
-  `lost_significance`, `gained_significance`, or `unchanged` — so
-  researchers can flag pairs whose observed correlation may be inflated
-  by shared response method. See Lindell & Whitney (2001) and
-  Malhotra, Kim & Patil (2006).
 - **`Plspm.nomological_validity(hypotheses, alpha=0.05)`** — directional
   hypothesis testing on latent-variable correlations. Each hypothesis is
   a triple ``(source, target, expected_sign)`` with ``expected_sign`` in
@@ -48,6 +30,33 @@ package and publishes it to PyPI via OIDC trusted publishing.
   2022). Returns a :class:`.nomological.NomologicalValidity` object with
   ``table()`` (per-hypothesis verdict) and ``correlations()`` (full LV
   correlation matrix).
+- **Common Method Bias diagnostic** (Lindell & Whitney 2001 marker-variable
+  procedure) via ``Plspm.cmb_lindell_whitney(marker, alpha=0.05)``. Takes
+  a marker variable theoretically unrelated to any substantive construct,
+  estimates the common method variance proxy ``r_M`` as the signed
+  smallest-absolute marker-construct correlation, and partial-correlates
+  every substantive LV pair by ``r_M`` via
+  ``r_A = (r_U − r_M) / (1 − r_M)``. Two-sided p-values are reported for
+  both the unadjusted (``n − 2`` df) and adjusted (``n − 3`` df)
+  correlations; the per-pair verdict is
+  ``"lost_significance"`` / ``"gained_significance"`` / ``"unchanged"``.
+  Marker rows with missing values use pairwise deletion. See Lindell &
+  Whitney (2001) and Malhotra, Kim & Patil (2006).
+- **Cross-Validated Predictive Ability Test** (CVPAT, Liengaard et al.
+  2021) via ``Plspm.cvpat(benchmark="IA", k=10, repeats=1, seed=42,
+  alpha=0.05)``. Runs ``k``-fold cross-validation, accumulates per-
+  observation squared prediction errors across endogenous indicators
+  under (a) PLS-SEM and (b) a benchmark, then runs a one-sided paired
+  t-test on the loss differences ``d_i = loss_i^PLS − loss_i^benchmark``
+  under ``H_0: E[d] ≥ 0``. Two benchmarks are supported: ``"IA"``
+  (indicator average, the naive Q²_predict baseline) and ``"LM"``
+  (direct-antecedents linear regression on the target indicator).
+  ``overall()`` returns the model-level test, ``per_construct()`` returns
+  one test per endogenous LV, and ``losses()`` exposes the per-
+  observation loss table. Complements PLSpredict (Shmueli et al. 2019),
+  which compares PLS to LM one indicator at a time without a
+  significance test on the difference. See Liengaard et al. (2021) in
+  *Decision Sciences* 52(2).
 
 ## [1.9.0] - 2026-06-19
 
