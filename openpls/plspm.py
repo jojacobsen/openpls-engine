@@ -26,6 +26,7 @@ import openpls.weights as w
 from openpls.bootstrap import Bootstrap
 from openpls.copula import GaussianCopula
 from openpls.cta import CTAPLS
+from openpls.cvpat import CVPAT
 from openpls.estimator import Estimator
 from openpls.f_squared import FSquared
 from openpls.fimix import FIMIX
@@ -447,6 +448,52 @@ class Plspm:
             repeats=repeats,
             seed=seed,
             lm_predictor_set=lm_predictor_set,
+        )
+
+    def cvpat(
+        self,
+        benchmark: str = "IA",
+        k: int = 10,
+        repeats: int = 1,
+        seed: int | None = 42,
+        alpha: float = 0.05,
+    ) -> CVPAT:
+        """Cross-Validated Predictive Ability Test (Liengaard et al. 2021).
+
+        Tests whether the PLS-SEM model has significantly better out-of-sample
+        predictive ability than a naive benchmark. For each observation held
+        out in k-fold cross-validation, squared prediction errors are summed
+        across endogenous indicators to produce per-observation losses under
+        (a) PLS-SEM and (b) the benchmark; a one-sided paired t-test on the
+        loss differences ``d_i = loss_i^PLS - loss_i^benchmark`` rejects
+        ``H_0: E[d] >= 0`` when PLS-SEM wins.
+
+        Not cached: pass parameters on each call.
+
+        Args:
+            benchmark: ``"IA"`` (indicator average — train-fold column mean,
+                default) or ``"LM"`` (direct-antecedents linear regression).
+            k: number of CV folds (default 10, must be >= 2 and <= n).
+            repeats: number of times to repeat the k-fold split with
+                different permutations (default 1).
+            seed: base RNG seed for fold permutations (default 42; pass
+                ``None`` for non-deterministic).
+            alpha: significance level for the one-sided test (default 0.05).
+
+        Returns:
+            an instance of :class:`.cvpat.CVPAT` exposing ``overall()``
+            (model-level test), ``per_construct()`` (per-endogenous-LV
+            test), and ``losses()`` (per-observation loss table).
+        """
+        return CVPAT(
+            self.__config,
+            self.__data,
+            self.__scheme,
+            benchmark=benchmark,
+            k=k,
+            repeats=repeats,
+            seed=seed,
+            alpha=alpha,
         )
 
     def vif(self) -> VIF:

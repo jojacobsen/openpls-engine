@@ -9,6 +9,24 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [Unreleased]
+
+### Added
+- **Cross-Validated Predictive Ability Test** (CVPAT, Liengaard et al.
+  2021). New `openpls.cvpat.CVPAT` class, exposed as
+  `Plspm.cvpat(benchmark="IA", k=10, repeats=1, seed=42, alpha=0.05)`.
+  Runs k-fold cross-validation, sums per-observation squared prediction
+  errors across endogenous indicators under (a) PLS-SEM and (b) a
+  benchmark, then runs a one-sided paired t-test on the loss
+  differences ``d_i = loss_i^PLS - loss_i^benchmark`` under
+  ``H_0: E[d] >= 0``. Two benchmarks are supported: ``"IA"`` (indicator
+  average — the naive Q²_predict baseline) and ``"LM"`` (direct-
+  antecedents linear regression on the target indicator).
+  ``overall()`` returns the model-level test, ``per_construct()``
+  returns one test per endogenous LV, and ``losses()`` exposes the
+  per-observation loss table. See Liengaard et al. (2021) in Decision
+  Sciences.
+
 ## [1.9.0] - 2026-06-19
 
 Addresses two engine-side items from Florian Schuberth's technical review
