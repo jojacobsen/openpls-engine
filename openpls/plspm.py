@@ -37,6 +37,7 @@ from openpls.htmt2 import HTMT2
 from openpls.ipma import IPMA
 from openpls.mga import GroupSpec
 from openpls.micom import MICOM
+from openpls.nomological import NomologicalValidity
 from openpls.plsc import PLSc
 from openpls.predict import PLSPredict
 from openpls.q_squared import QSquared
@@ -241,6 +242,35 @@ class Plspm:
                 self.__inner_model.r_squared(),
             )
         return self.__f_squared
+
+    def nomological_validity(
+        self,
+        hypotheses,
+        alpha: float = 0.05,
+    ) -> NomologicalValidity:
+        """Directional hypothesis testing on latent-variable correlations.
+
+        For each ``(source, target, expected_sign)`` triple, tests whether
+        the Pearson correlation between the two LV score columns matches
+        the hypothesised direction. Uses a one-sided t-test with ``n - 2``
+        degrees of freedom; a hypothesis is ``"supported"`` when the
+        observed sign matches AND the one-sided p-value is below ``alpha``
+        (Cronbach & Meehl 1955; Hair, Hult, Ringle & Sarstedt 2022).
+
+        Not cached: pass the hypothesis set on each call.
+
+        Args:
+            hypotheses: sequence of ``(source, target, sign)`` triples,
+                where ``sign`` is ``"+"`` or ``"-"``.
+            alpha: significance level for the one-sided test (default
+                ``0.05``).
+
+        Returns:
+            an instance of :class:`.nomological.NomologicalValidity`
+            exposing ``table()`` (per-hypothesis verdict) and
+            ``correlations()`` (full LV correlation matrix).
+        """
+        return NomologicalValidity(self.__scores, hypotheses, alpha=alpha)
 
     def fornell_larcker(self) -> FornellLarcker:
         """Fornell-Larcker discriminant-validity criterion (1981).
