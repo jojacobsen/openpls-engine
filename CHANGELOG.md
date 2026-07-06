@@ -9,6 +9,21 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [Unreleased]
+
+### Added
+- **`Plspm.nomological_validity(hypotheses, alpha=0.05)`** — directional
+  hypothesis testing on latent-variable correlations. Each hypothesis is
+  a triple ``(source, target, expected_sign)`` with ``expected_sign`` in
+  ``{"+", "-"}``; the method evaluates whether the Pearson correlation
+  between the two LV score columns matches the hypothesised direction via
+  a one-sided t-test with ``n − 2`` degrees of freedom. Verdict is
+  ``"supported"`` when the sign matches AND the one-sided p-value is
+  below ``alpha`` (Cronbach & Meehl 1955; Hair, Hult, Ringle & Sarstedt
+  2022). Returns a :class:`.nomological.NomologicalValidity` object with
+  ``table()`` (per-hypothesis verdict) and ``correlations()`` (full LV
+  correlation matrix).
+
 ## [1.9.0] - 2026-06-19
 
 Addresses two engine-side items from Florian Schuberth's technical review
