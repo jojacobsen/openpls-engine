@@ -668,15 +668,33 @@ class Plspm:
         suspected: list[str] | None = None,
         n_boot: int = 500,
         seed: int | None = 42,
+        algorithm: str = "ols_hult",
     ) -> GaussianCopula:
         """Gaussian-copula endogeneity test (Park & Gupta 2012;
         Hult, Hair, Proksch, Sarstedt, Pinkwart & Ringle 2018).
 
         For the structural equation of ``endogenous``, augments each
         suspected predecessor LV with a copula term
-        ``P_k = Phi^{-1}(F_n(X_k))`` and tests its OLS coefficient by
+        ``P_k = Phi^{-1}(F_n(X_k))`` and tests its coefficient by
         non-parametric bootstrap. A significant copula coefficient
         indicates endogeneity in that predictor.
+
+        Two algorithms are available:
+
+        * ``"ols_hult"`` (default; Hult et al. 2018): the copula terms
+          are added as extra regressors in an OLS-augmented path
+          equation on the base LV scores. Bootstrap inference is
+          on the OLS coefficient.
+        * ``"augmented_plssem"`` (Park & Gupta 2012 augmented model):
+          each copula term is injected as a single-indicator latent
+          variable ``GC_<lv>`` with a direct path into the endogenous
+          LV, and the entire PLS-SEM is refit. Bootstrap inference is
+          on the PLS-SEM structural path of ``GC_<lv> → endogenous``.
+          Slower (each resample refits the base and augmented PLS-SEM)
+          but reports GC paths with full PLS-SEM inference.
+
+        Both algorithms yield similar copula-correction magnitudes on
+        typical fixtures; they differ in how the inference is derived.
 
         Args:
             endogenous: name of the endogenous LV whose structural
@@ -687,12 +705,16 @@ class Plspm:
                 >= 50).
             seed: RNG seed for the bootstrap. ``None`` for
                 non-deterministic.
+            algorithm: ``"ols_hult"`` (default) or
+                ``"augmented_plssem"``.
 
         Returns:
             a :class:`.copula.GaussianCopula` instance. Call
             ``coefficients()`` for the per-predictor diagnostics,
             ``augmented_paths()`` for the endogeneity-corrected
-            structural estimates, and ``summary()`` for a
+            structural estimates, ``augmented_full_paths()`` for the
+            full augmented path-coefficient matrix (only under
+            ``augmented_plssem``), and ``summary()`` for a
             per-predictor verdict (including a Cramér-von Mises
             admissibility check).
         """
@@ -703,6 +725,9 @@ class Plspm:
             suspected=suspected,
             n_boot=n_boot,
             seed=seed,
+            algorithm=algorithm,
+            manifest_data=self.__data if algorithm == "augmented_plssem" else None,
+            scheme=self.__scheme if algorithm == "augmented_plssem" else None,
         )
 
     def fimix(
