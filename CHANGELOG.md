@@ -9,7 +9,11 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
-## [Unreleased]
+## [1.11.0] - 2026-09-01
+
+Additive Gaussian-copula variant: alongside the existing one-step OLS
+approach, callers can now report copula-corrected paths with full
+PLS-SEM bootstrap inference. Default behaviour is unchanged.
 
 ### Added
 - **`Plspm.copula(..., algorithm="augmented_plssem")`** — second
@@ -599,7 +603,8 @@ Initial OpenPLS rebrand of the `plspm-python` 0.5.7 baseline.
 - Forked `plspm-python` 0.5.7 with attribution preserved.
 - `pyproject.toml`, ruff config, GitHub Actions CI matrix (Py 3.10 to 3.13).
 
-[Unreleased]: https://github.com/jojacobsen/openpls-engine/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/jojacobsen/openpls-engine/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/jojacobsen/openpls-engine/releases/tag/v1.11.0
 [1.4.0]: https://github.com/jojacobsen/openpls-engine/releases/tag/v1.4.0
 [0.7.0a3]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.7.0a3
 [0.7.0a2]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.7.0a2
