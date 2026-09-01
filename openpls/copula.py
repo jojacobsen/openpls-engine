@@ -17,7 +17,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -26,10 +26,6 @@ from scipy import stats
 import openpls.config as c
 from openpls.mode import Mode
 from openpls.scheme import Scheme
-
-if TYPE_CHECKING:  # pragma: no cover - typing only
-    from openpls.plspm import Plspm
-
 
 ALGORITHMS = ("ols_hult", "augmented_plssem")
 
@@ -124,13 +120,13 @@ class GaussianCopula:
         config: c.Config,
         scores: pd.DataFrame,
         endogenous: str,
-        suspected: Optional[list[str]] = None,
+        suspected: list[str] | None = None,
         n_boot: int = 500,
-        seed: Optional[int] = 42,
+        seed: int | None = 42,
         *,
         algorithm: Literal["ols_hult", "augmented_plssem"] = "ols_hult",
-        manifest_data: Optional[pd.DataFrame] = None,
-        scheme: Optional[Scheme] = None,
+        manifest_data: pd.DataFrame | None = None,
+        scheme: Scheme | None = None,
     ):
         if algorithm not in ALGORITHMS:
             raise ValueError(
@@ -214,7 +210,7 @@ class GaussianCopula:
         suspected: list[str],
         normality: dict[str, float],
         n_boot: int,
-        seed: Optional[int],
+        seed: int | None,
     ) -> None:
         endogenous = self.__endogenous
         y = scores[endogenous].to_numpy(dtype=float)
@@ -274,7 +270,7 @@ class GaussianCopula:
         self.__n_boot = int(boot_valid.shape[0])
         self.__augmented_paths = coef_paths
         self.__coefficients = coef_table
-        self.__augmented_full_paths: Optional[pd.DataFrame] = None
+        self.__augmented_full_paths: pd.DataFrame | None = None
 
     # ------------------------------------------------------------------
     # augmented_plssem (Park & Gupta 2012 augmented-model variant)
@@ -291,7 +287,7 @@ class GaussianCopula:
         suspected: list[str],
         normality: dict[str, float],
         n_boot: int,
-        seed: Optional[int],
+        seed: int | None,
     ) -> None:
         # Import inside method to avoid a top-level circular import
         # (openpls.plspm imports openpls.copula).
@@ -386,11 +382,11 @@ class GaussianCopula:
     def __build_augmented(
         self,
         config: c.Config,
-        scores: Optional[pd.DataFrame],
+        scores: pd.DataFrame | None,
         manifest_data: pd.DataFrame,
         endogenous: str,
         suspected: list[str],
-        scheme: Optional[Scheme] = None,
+        scheme: Scheme | None = None,
     ) -> tuple[pd.DataFrame, c.Config]:
         """Build the augmented ``(data, config)`` pair.
 
@@ -500,7 +496,7 @@ class GaussianCopula:
         """
         return self.__augmented_paths
 
-    def augmented_full_paths(self) -> Optional[pd.DataFrame]:
+    def augmented_full_paths(self) -> pd.DataFrame | None:
         """Full augmented-model path-coefficient matrix, including
         the ``GC_*`` LVs (``augmented_plssem`` only). Returns ``None``
         for the ``ols_hult`` variant."""
