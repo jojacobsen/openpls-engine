@@ -218,3 +218,153 @@ def test_copula_augmented_paths_differ_from_raw_when_endogeneity_present():
     )
     # Endogeneity correction must move the structural estimate noticeably.
     assert abs(raw - corrected) > 1e-2
+
+
+# ---------------------------------------------------------------------------
+# augmented_plssem variant (Park & Gupta 2012; issue #35)
+# ---------------------------------------------------------------------------
+
+
+def _endogeneity_plspm(seed: int = 321, n: int = 600) -> tuple[Plspm, pd.DataFrame]:
+    """Synthetic X → Y model with a shared skewed confound z, so the
+    Gaussian-copula test should reject H0: gamma = 0 on X."""
+    rng = np.random.default_rng(seed)
+    z = rng.standard_normal(n) ** 2
+    x_score = z + rng.exponential(scale=1.0, size=n)
+    y_score = 0.5 * x_score + 0.8 * z + rng.standard_normal(n)
+    loading = 0.9
+    p = 4
+    err_x = rng.standard_normal((n, p)) * np.sqrt(1 - loading ** 2)
+    err_y = rng.standard_normal((n, p)) * np.sqrt(1 - loading ** 2)
+    df = pd.DataFrame(
+        np.column_stack([
+            loading * x_score[:, None] + err_x,
+            loading * y_score[:, None] + err_y,
+        ]),
+        columns=[f"x{i+1}" for i in range(p)] + [f"y{i+1}" for i in range(p)],
+    )
+    structure = c.Structure()
+    structure.add_path(["X"], ["Y"])
+    config = c.Config(structure.path(), scaled=False)
+    config.add_lv_with_columns_named("X", Mode.A, df, "x")
+    config.add_lv_with_columns_named("Y", Mode.A, df, "y")
+    return Plspm(df, config, Scheme.CENTROID), df
+
+
+def test_copula_algorithm_default_is_ols_hult():
+    plspm_calc = _satisfaction_plspm()
+    cop = plspm_calc.copula(endogenous="SAT", n_boot=100, seed=0)
+    assert cop.algorithm() == "ols_hult"
+    # augmented_full_paths is only populated in augmented_plssem mode
+    assert cop.augmented_full_paths() is None
+
+
+def test_copula_unknown_algorithm_raises():
+    plspm_calc = _satisfaction_plspm()
+    with pytest.raises(ValueError):
+        plspm_calc.copula(endogenous="SAT", algorithm="nope")
+
+
+def test_copula_augmented_plssem_runs_and_shape():
+    plspm_calc = _satisfaction_plspm()
+    cop = plspm_calc.copula(
+        endogenous="SAT",
+        suspected=["IMAG", "QUAL"],
+        n_boot=60,
+        seed=0,
+        algorithm="augmented_plssem",
+    )
+    assert cop.algorithm() == "augmented_plssem"
+    coef = cop.coefficients()
+    assert list(coef.columns) == [
+        "predictor",
+        "gamma",
+        "boot_se",
+        "t",
+        "p_value",
+        "cvm_p_nonnormal",
+    ]
+    assert list(coef["predictor"]) == ["IMAG", "QUAL"]
+    assert (coef["boot_se"] > 0).all()
+    # augmented path series has one entry per structural predecessor
+    assert list(cop.augmented_paths().index) == ["IMAG", "EXPE", "QUAL", "VAL"]
+    full = cop.augmented_full_paths()
+    assert full is not None
+    # GC_<lv> rows should exist as exogenous LVs; column entries appear
+    # in the endogenous row.
+    assert "GC_IMAG" in full.columns and "GC_QUAL" in full.columns
+    assert float(full.loc["SAT", "GC_IMAG"]) == coef.loc[0, "gamma"]
+    assert float(full.loc["SAT", "GC_QUAL"]) == coef.loc[1, "gamma"]
+
+
+def test_copula_augmented_plssem_detects_endogeneity():
+    plspm_calc, _ = _endogeneity_plspm()
+    cop = plspm_calc.copula(
+        endogenous="Y", n_boot=100, seed=0, algorithm="augmented_plssem"
+    )
+    summary = cop.summary()
+    row = summary.iloc[0]
+    assert row["cvm_p_nonnormal"] < 0.05
+    assert row["p_value"] < 0.05
+    assert row["decision"] == "endogeneity detected"
+
+
+def test_copula_augmented_plssem_deterministic_under_fixed_seed():
+    plspm_calc = _satisfaction_plspm()
+    a = plspm_calc.copula(
+        endogenous="SAT",
+        suspected=["IMAG"],
+        n_boot=60,
+        seed=7,
+        algorithm="augmented_plssem",
+    ).coefficients()
+    b = plspm_calc.copula(
+        endogenous="SAT",
+        suspected=["IMAG"],
+        n_boot=60,
+        seed=7,
+        algorithm="augmented_plssem",
+    ).coefficients()
+    pd.testing.assert_frame_equal(a, b)
+
+
+def test_copula_augmented_plssem_augmented_paths_move_original():
+    plspm_calc, _ = _endogeneity_plspm()
+    raw = float(plspm_calc.path_coefficients().loc["Y", "X"])
+    cop = plspm_calc.copula(
+        endogenous="Y", n_boot=60, seed=0, algorithm="augmented_plssem"
+    )
+    corrected = float(cop.augmented_paths().loc["X"])
+    assert abs(raw - corrected) > 1e-2
+
+
+def test_copula_augmented_plssem_admissibility_screen_still_reported():
+    """A Gaussian regressor must still be flagged 'copula not admissible'
+    under augmented_plssem — the CvM screen runs before the PLS-SEM refit
+    and does not depend on the chosen algorithm."""
+    rng = np.random.default_rng(42)
+    n = 500
+    eta_x = rng.standard_normal(n)
+    eta_y = 0.5 * eta_x + rng.standard_normal(n) * np.sqrt(1 - 0.25)
+    loading = 0.9
+    p = 4
+    err_x = rng.standard_normal((n, p)) * np.sqrt(1 - loading ** 2)
+    err_y = rng.standard_normal((n, p)) * np.sqrt(1 - loading ** 2)
+    df = pd.DataFrame(
+        np.column_stack([
+            loading * eta_x[:, None] + err_x,
+            loading * eta_y[:, None] + err_y,
+        ]),
+        columns=[f"x{i+1}" for i in range(p)] + [f"y{i+1}" for i in range(p)],
+    )
+    structure = c.Structure()
+    structure.add_path(["X"], ["Y"])
+    config = c.Config(structure.path(), scaled=False)
+    config.add_lv_with_columns_named("X", Mode.A, df, "x")
+    config.add_lv_with_columns_named("Y", Mode.A, df, "y")
+    plspm_calc = Plspm(df, config, Scheme.CENTROID)
+    summary = plspm_calc.copula(
+        endogenous="Y", n_boot=60, seed=0, algorithm="augmented_plssem"
+    ).summary()
+    decision = summary.loc[summary["predictor"] == "X", "decision"].iloc[0]
+    assert decision == "copula not admissible (normal)"

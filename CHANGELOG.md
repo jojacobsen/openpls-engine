@@ -9,6 +9,26 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [Unreleased]
+
+### Added
+- **`Plspm.copula(..., algorithm="augmented_plssem")`** — second
+  Gaussian-copula variant that follows the augmented-PLS-SEM model of
+  Park & Gupta (2012). For each suspected endogenous predictor, the
+  copula term ``c_LV = Φ⁻¹(F̂(score))`` is injected as a
+  *single-indicator latent variable* ``GC_<lv>`` with a direct path
+  into the endogenous LV, and the entire PLS-SEM is refit on the
+  augmented model. Bootstrap inference is then on the PLS-SEM
+  structural path of ``GC_<lv> → endogenous`` (each resample rebuilds
+  the base fit + GC terms + augmented refit). The existing one-step
+  OLS variant is unchanged and remains the default
+  (``algorithm="ols_hult"``, Hult et al. 2018). Use ``augmented_plssem``
+  when replicating published examples that report GC paths with full
+  PLS-SEM inference. New accessor
+  :meth:`.copula.GaussianCopula.augmented_full_paths` returns the full
+  augmented path-coefficient matrix (populated only under the new
+  variant). Resolves issue #35.
+
 ## [1.10.0] - 2026-07-06
 
 Three additive research-methodology diagnostics: directional hypothesis
