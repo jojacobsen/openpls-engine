@@ -42,7 +42,7 @@ pip install openpls-engine
 Pin a specific version for reproducible analyses:
 
 ```sh
-pip install openpls-engine==1.11.0
+pip install openpls-engine==1.12.0
 ```
 
 Or work from source:
@@ -82,6 +82,37 @@ print(fit.report().reliability())  # alpha, rho_A, rho_C, AVE
 ```
 
 See the [Quickstart guide](https://openpls.app/engine/quickstart/) for the full walkthrough.
+
+## Use from an AI assistant (MCP)
+
+The engine ships a local [Model Context Protocol](https://modelcontextprotocol.io)
+server, so an assistant like Claude or Cursor can inspect a dataset and fit a
+model by calling the engine directly on your machine. Nothing is uploaded: the
+tools read datasets from local file paths.
+
+```sh
+pip install "openpls-engine[mcp]"
+```
+
+Point your MCP client at the `openpls-mcp` command, e.g. in Claude Desktop /
+Claude Code config:
+
+```json
+{
+  "mcpServers": {
+    "openpls": { "command": "openpls-mcp" }
+  }
+}
+```
+
+Two tools are exposed:
+
+- **`describe_dataset(path)`** — row count and per-column name/type for a local
+  CSV/TSV/Excel file, so the assistant can pick indicator columns.
+- **`fit_pls_sem(data_path, latent_variables, structural_paths, scheme, scaled, missing_codes)`**
+  — fit a model and get R² per construct, path coefficients (estimate, p-value,
+  f²), reliability (Cronbach's α, ρ_A, ρ_C, AVE), model fit (SRMR, d_ULS) and
+  the goodness-of-fit index.
 
 ## What's inside
 

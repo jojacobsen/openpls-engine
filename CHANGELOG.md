@@ -9,6 +9,30 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [1.12.0] - 2026-10-12
+
+Local Model Context Protocol (MCP) server, so an AI assistant (Claude,
+Cursor, …) can inspect a dataset and fit a PLS-SEM model by calling the
+engine directly on the user's machine. No cloud, no account, no data
+upload. Purely additive: an optional extra that does not touch the
+compute core.
+
+### Added
+- **`openpls-mcp` console script** (install with
+  `pip install openpls-engine[mcp]`) — an MCP server over stdio exposing
+  two tools:
+  - `describe_dataset(path)` — row count and per-column name/type for a
+    local CSV/TSV/Excel file, so the assistant can pick indicator columns.
+  - `fit_pls_sem(data_path, latent_variables, structural_paths, scheme,
+    scaled, missing_codes)` — fit a model and return R² per construct,
+    path coefficients (estimate, p-value, f²), reliability (Cronbach's
+    alpha, rho_a, rho_c, AVE), model fit (SRMR, d_ULS) and the
+    goodness-of-fit index.
+
+  The compute logic lives in `openpls.mcp.core` with no dependency on the
+  MCP SDK, so it is importable and testable without the `[mcp]` extra. The
+  server supports both MCP SDK majors (v1 `FastMCP` and v2 `MCPServer`).
+
 ## [1.11.0] - 2026-09-01
 
 Additive Gaussian-copula variant: alongside the existing one-step OLS
