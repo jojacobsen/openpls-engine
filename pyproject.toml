@@ -8,14 +8,13 @@ version = "1.12.0"
 description = "PLS-SEM compute engine, a maintained fork of plspm-python with advanced analyses (PLSc, IPMA, PLSpredict, moderation, FIMIX-PLS, Gaussian-copula endogeneity, disjoint two-stage HOC, specific indirect effects, MICOM measurement invariance, BootstrapMGA, nomological validity, Lindell-Whitney CMB, CVPAT) and extended metrics (SRMR, d_ULS, HTMT, HTMT2, Q², MGA, Cohen f², Fornell-Larcker, publication-ready Report) powering OpenPLS."
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
     { name = "Johannes Jacob", email = "johannespjacob@gmail.com" },
 ]
 keywords = ["pls-sem", "structural-equation-modeling", "statistics", "pls", "sem"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -53,7 +52,7 @@ exclude = ["tests*", "docs*"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B"]
