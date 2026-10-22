@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from dataclasses import dataclass
+
 import numpy as np
 import pandas as pd
 
@@ -22,6 +24,39 @@ import openpls.config as c
 from openpls.inner_model import _effects
 from openpls.mode import Mode
 from openpls.specific_indirect import specific_indirect_point
+
+# Tolerance for the admissibility bounds. Values this far past a bound are
+# flagged; values merely at floating-point distance from it are not.
+_ADMISSIBILITY_TOL = 1e-8
+
+
+class InadmissiblePLScError(Exception):
+    """A PLSc correction cannot be computed because the solution is undefined.
+
+    Raised when a reflective block's Dijkstra-Henseler ``rho_A`` is zero or
+    negative. The disattenuation divides by ``sqrt(rho_A)``, so a non-positive
+    ``rho_A`` would silently produce ``NaN`` path coefficients, loadings and
+    R². This happens when a reflective block's indicators do not share a common
+    factor (near-zero or negative inter-item correlations), which is common in
+    small samples. Catch this in bootstrap / cross-validation loops to drop the
+    affected resample or fold.
+    """
+
+
+@dataclass(frozen=True)
+class PLScAdmissibility:
+    """Result of the PLSc admissibility checks (Dijkstra & Henseler 2015).
+
+    Mirrors the checks consistent-PLS implementations warn on while still
+    returning the estimates: a ``rho_A`` above one, a standardized loading
+    above one, a disattenuated construct correlation of one or more in
+    absolute value, a construct correlation matrix that is not positive
+    definite, or an R² outside ``[0, 1]``. ``admissible`` is ``True`` when
+    ``issues`` is empty.
+    """
+
+    admissible: bool
+    issues: tuple[str, ...]
 
 
 def _rho_a_block(w: np.ndarray, indicators: np.ndarray) -> float:
@@ -113,6 +148,17 @@ class PLSc:
             w = outer_model.loc[inds, "weight"].to_numpy(dtype=float)
             rho.loc[lv] = _rho_a_block(w, block.to_numpy(dtype=float))
 
+        nonpositive = rho[rho <= 0.0]
+        if len(nonpositive):
+            named = ", ".join(repr(lv) for lv in nonpositive.index)
+            raise InadmissiblePLScError(
+                "PLSc cannot be computed: Dijkstra-Henseler rho_A is <= 0 for "
+                f"{named}. Such a reflective block does not share a common "
+                "factor (near-zero or negative inter-item correlations), so "
+                "there is no consistent correction; re-specify the measurement "
+                "model or treat the block as a composite."
+            )
+
         adjustment = np.sqrt(np.outer(rho.values, rho.values))
         np.fill_diagonal(adjustment, 1.0)
         raw_cors = scores[lvs].corr().to_numpy()
@@ -190,6 +236,10 @@ class PLSc:
 
         vif_inner = self.__compute_inner_vif(path, adj_cors)
 
+        admissibility = self.__check_admissibility(
+            rho, loadings, adj_cors, r_squared, endogenous
+        )
+
         self.__path = path
         self.__rho = rho
         self.__adj_cors = adj_cors
@@ -206,6 +256,7 @@ class PLSc:
         self.__bic = bic
         self.__vif_inner = vif_inner
         self.__effects = _effects(corrected_paths)
+        self.__admissibility = admissibility
 
     @staticmethod
     def __compute_fit(
@@ -283,6 +334,68 @@ class PLSc:
             if rows:
                 out[endo] = pd.DataFrame(rows, columns=["predictor", "vif"])
         return out
+
+    @staticmethod
+    def __check_admissibility(
+        rho: pd.Series,
+        loadings: pd.Series,
+        adj_cors: pd.DataFrame,
+        r_squared: pd.Series,
+        endogenous: list[str],
+    ) -> PLScAdmissibility:
+        """Flag the non-fatal signs of an inadmissible PLSc solution.
+
+        The fatal case (``rho_A <= 0``) is handled earlier by raising
+        :class:`InadmissiblePLScError`; here we collect the conditions that
+        leave a usable but out-of-bounds estimate, so a caller can surface
+        them without the estimates being withheld.
+        """
+        tol = _ADMISSIBILITY_TOL
+        issues: list[str] = []
+
+        for lv, value in rho.items():
+            if value > 1.0 + tol:
+                issues.append(f"rho_A = {value:.4f} > 1 for construct {lv!r}")
+
+        for mv, value in loadings.items():
+            if np.isfinite(value) and abs(value) > 1.0 + tol:
+                issues.append(
+                    f"standardized loading = {value:.4f} (|.| > 1) for indicator {mv!r}"
+                )
+
+        lvs = list(adj_cors.columns)
+        corr = adj_cors.to_numpy()
+        for i in range(len(lvs)):
+            for j in range(i + 1, len(lvs)):
+                value = corr[i, j]
+                if np.isfinite(value) and abs(value) >= 1.0 - tol:
+                    issues.append(
+                        f"disattenuated correlation = {value:.4f} (|.| >= 1) "
+                        f"between {lvs[i]!r} and {lvs[j]!r}"
+                    )
+
+        if np.isnan(corr).any():
+            issues.append("construct correlation matrix contains NaN")
+        else:
+            try:
+                min_eig = float(np.linalg.eigvalsh(corr).min())
+                if min_eig < -tol:
+                    issues.append(
+                        "disattenuated construct correlation matrix is not "
+                        f"positive definite (min eigenvalue {min_eig:.2e})"
+                    )
+            except np.linalg.LinAlgError:
+                issues.append(
+                    "disattenuated construct correlation matrix eigenvalues "
+                    "could not be computed"
+                )
+
+        for endo in endogenous:
+            value = float(r_squared.loc[endo])
+            if np.isfinite(value) and (value < -tol or value > 1.0 + tol):
+                issues.append(f"R^2 = {value:.4f} outside [0, 1] for construct {endo!r}")
+
+        return PLScAdmissibility(admissible=not issues, issues=tuple(issues))
 
     def rho_a(self) -> pd.Series:
         """Dijkstra-Henseler ``rho_A`` per construct.
@@ -460,6 +573,21 @@ class PLSc:
         fewer than two predictors are omitted (VIF is trivially 1).
         """
         return self.__vif_inner
+
+    def admissibility(self) -> PLScAdmissibility:
+        """Admissibility of the PLSc solution (Dijkstra & Henseler 2015).
+
+        Returns a :class:`PLScAdmissibility` whose ``admissible`` flag is
+        ``False`` when any bound is violated — a ``rho_A`` above one, a
+        standardized loading above one, a disattenuated construct correlation
+        of one or more in absolute value, a construct correlation matrix that
+        is not positive definite, or an R² outside ``[0, 1]`` — with a
+        human-readable ``issues`` tuple naming the constructs involved. The
+        estimates are still returned; these are warnings, not errors. The
+        fatal case (``rho_A <= 0``) instead raises
+        :class:`InadmissiblePLScError` at construction time.
+        """
+        return self.__admissibility
 
     def summary(self) -> pd.DataFrame:
         """Per-LV summary: ``rho_A``, AVE, ρ_c, corrected R² / adj R², BIC."""

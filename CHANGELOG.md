@@ -9,6 +9,37 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [1.13.0] - unreleased
+
+PLSc (consistent PLS) now validates its own solution instead of silently
+returning out-of-bounds numbers. Reflective models whose blocks do not share
+a common factor (common in small samples and on raw, unstandardized
+indicators) produced disattenuated correlations past 1, loadings past 1 or
+`NaN` path coefficients without any signal. The correction and all existing
+outputs are unchanged for admissible models; this is purely additive.
+
+### Added
+- **`PLSc.admissibility()`** returns a `PLScAdmissibility(admissible, issues)`
+  record flagging the non-fatal signs of an inadmissible consistent-PLS
+  solution (Dijkstra & Henseler 2015): a `rho_A` above one, a standardized
+  loading above one, a disattenuated construct correlation of one or more in
+  absolute value, a construct correlation matrix that is not positive
+  definite, or an R² outside `[0, 1]`. The estimates are still returned; the
+  `issues` tuple names the constructs involved.
+- **`InadmissiblePLScError`** is raised at construction when a block's
+  `rho_A` is zero or negative. The disattenuation divides by `sqrt(rho_A)`, so
+  a non-positive `rho_A` would otherwise yield silent `NaN`s. Catch it in
+  bootstrap / cross-validation loops to drop the affected resample or fold.
+- Both are exported from the package top level
+  (`from openpls import PLScAdmissibility, InadmissiblePLScError`).
+
+### Changed
+- **Minimum Python is now 3.11** (was 3.10). The scientific-Python stack
+  dropped 3.10: numpy >= 2.3, scipy >= 1.16 and pandas >= 2.3 all require
+  Python >= 3.11, so keeping the dependencies current is not possible on 3.10.
+  Python 3.10 is end-of-life. (The dependency refresh and the pandas 3.0 bump
+  that motivate this land alongside, in the same release.)
+
 ## [1.12.0] - 2026-10-12
 
 Local Model Context Protocol (MCP) server, so an AI assistant (Claude,

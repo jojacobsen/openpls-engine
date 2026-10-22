@@ -18,6 +18,7 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
+from openpls.plsc import InadmissiblePLScError, PLScAdmissibility
 from openpls.plspm import Plspm
 
 name = "openpls"
@@ -27,4 +28,4 @@ try:
 except PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 
-__all__ = ["Plspm"]
+__all__ = ["Plspm", "InadmissiblePLScError", "PLScAdmissibility"]
