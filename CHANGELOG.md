@@ -9,7 +9,7 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
-## [1.13.0] - unreleased
+## [1.13.0] - 2026-10-23
 
 PLSc (consistent PLS) now validates its own solution instead of silently
 returning out-of-bounds numbers. Reflective models whose blocks do not share
