@@ -146,7 +146,7 @@ pytest          # run the test suite
 ruff check .    # lint
 ```
 
-CI runs lint and tests on Python 3.10 through 3.13 against every push and pull request against `main`.
+CI runs lint and tests on Python 3.11 through 3.13 against every push and pull request against `main`.
 
 ## Versioning
 
