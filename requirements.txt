@@ -1,4 +1,4 @@
-pandas==2.3.3
+pandas==3.0.6
 numpy==2.4.6
 scipy==1.17.1
 statsmodels==0.15.0
