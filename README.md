@@ -118,7 +118,7 @@ Two tools are exposed:
 
 **Quality criteria** — HTMT and HTMT2 (geometric-mean refinement, Roemer et al. 2021), SRMR, d_ULS, Cronbach α, Dijkstra-Henseler ρ_A and ρ_C, adjusted R², BIC, Stone-Geisser Q² (blindfolding), Cohen f² effect sizes, Fornell-Larcker discriminant validity, per-indicator and per-predictor VIF, CTA-PLS (confirmatory tetrad analysis for reflective measurement).
 
-**Advanced analyses** — PLSc (consistent-PLS bias correction, Dijkstra & Henseler 2015), Gaussian-copula endogeneity test (Park & Gupta 2012; Hult et al. 2018), disjoint two-stage higher-order constructs covering all four canonical types (R-R / R-F / F-R / F-F), IPMA (Importance-Performance Map Analysis), PLSpredict with the complete Shmueli et al. 2019 panel (RMSE / MAE / MAPE, in-sample + out-of-sample, PLS + LM benchmark), two-stage moderation, FIMIX-PLS finite-mixture segmentation, specific indirect effects with bootstrap percentile CIs, multi-group analysis with Henseler permutation tests, MICOM measurement invariance of composites (Henseler, Ringle & Sarstedt 2016) with three-step verdict.
+**Advanced analyses** — PLSc (consistent-PLS bias correction, Dijkstra & Henseler 2015), Gaussian-copula endogeneity test (Park & Gupta 2012; Hult et al. 2018), disjoint two-stage higher-order constructs covering all four canonical types (R-R / R-F / F-R / F-F), IPMA (Importance-Performance Map Analysis), PLSpredict with the complete Shmueli et al. 2019 panel (RMSE / MAE / MAPE, in-sample + out-of-sample, PLS + LM benchmark), two-stage moderation, FIMIX-PLS finite-mixture segmentation, specific indirect effects with bootstrap percentile CIs, multi-group analysis with Henseler permutation tests, MICOM measurement invariance of composites (Henseler, Ringle & Sarstedt 2016) with three-step verdict, nomological validity (directional hypothesis tests on latent-variable correlations), the Lindell-Whitney marker-variable common-method-bias check, and the Cross-Validated Predictive Ability Test (CVPAT, Liengaard et al. 2021).
 
 **Engine internals** — five inner-weighting schemes (Centroid, Factorial, Path plus the new **quasi-Newton/BFGS** and **Lohmöller PCA** schemes), mean-replacement missing-value strategy alongside the upstream casewise default, long-running bootstrap with BCa percentile CIs and progress streaming, publication-ready `Plspm.report()` that bundles every reviewer-standard panel for one-call export.
 
@@ -146,7 +146,7 @@ pytest          # run the test suite
 ruff check .    # lint
 ```
 
-CI runs lint and tests on Python 3.10 through 3.13 against every push and pull request against `main`.
+CI runs lint and tests on Python 3.11 through 3.13 against every push and pull request against `main`.
 
 ## Versioning
 
