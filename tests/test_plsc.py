@@ -14,7 +14,7 @@ import pytest
 import openpls.config as c
 from openpls.config import MV
 from openpls.mode import Mode
-from openpls.plsc import _rho_a_block
+from openpls.plsc import InadmissiblePLScError, PLScAdmissibility, _rho_a_block
 from openpls.plspm import Plspm
 from openpls.scheme import Scheme
 
@@ -518,3 +518,92 @@ def test_plsc_specific_indirect_broken_through_raises():
         plspm_calc.plsc().specific_indirect_effects(
             "IMAG", "LOY", through=["VAL"]
         )
+
+
+# --- Admissibility (Dijkstra & Henseler 2015) ------------------------------
+
+
+def _satisfaction_plspm_scaled() -> Plspm:
+    """Satisfaction model on standardized indicators. PLSc assumes a
+    common-factor model on standardized data; on raw Likert scales rho_A is
+    not meaningful, so the real pipeline forces scaling before PLSc."""
+    satisfaction = pd.read_csv("file:tests/data/satisfaction.csv", index_col=0)
+    structure = c.Structure()
+    structure.add_path(["IMAG"], ["EXPE", "SAT", "LOY"])
+    structure.add_path(["EXPE"], ["QUAL", "VAL", "SAT"])
+    structure.add_path(["QUAL"], ["VAL", "SAT"])
+    structure.add_path(["VAL"], ["SAT"])
+    structure.add_path(["SAT"], ["LOY"])
+    config = c.Config(structure.path(), scaled=True)
+    for lv in ["IMAG", "EXPE", "QUAL", "VAL", "SAT", "LOY"]:
+        config.add_lv_with_columns_named(lv, Mode.A, satisfaction, lv.lower())
+    return Plspm(satisfaction, config, Scheme.CENTROID)
+
+
+def test_plsc_admissible_on_clean_model():
+    """A well-identified reflective model on standardized data satisfies every
+    PLSc bound, so the admissibility report is clean."""
+    report = _satisfaction_plspm_scaled().plsc().admissibility()
+    assert isinstance(report, PLScAdmissibility)
+    assert report.admissible is True
+    assert report.issues == ()
+
+
+def test_plsc_flags_raw_likert_scales_as_inadmissible():
+    """On raw (unstandardized) Likert indicators rho_A blows up and the
+    disattenuated correlations run past 1 — the report catches it instead of
+    returning silently absurd numbers."""
+    report = _satisfaction_plspm().plsc().admissibility()
+    assert report.admissible is False
+    assert report.issues  # names the offending constructs
+
+
+def test_plsc_admissible_on_strong_one_factor():
+    report = _fit_one_factor(n=1000, p=5, loading=0.9, seed=1).plsc().admissibility()
+    assert report.admissible is True
+    assert report.issues == ()
+
+
+def test_plsc_raises_on_nonpositive_rho_a(monkeypatch):
+    """rho_A <= 0 would divide the disattenuation by sqrt of a non-positive
+    number and silently yield NaN. PLSc must stop instead, naming the
+    constructs."""
+    monkeypatch.setattr("openpls.plsc._rho_a_block", lambda *a, **k: -0.5)
+    plspm_calc = _satisfaction_plspm()
+    with pytest.raises(InadmissiblePLScError) as excinfo:
+        plspm_calc.plsc()
+    # the offending reflective constructs are named in the message
+    assert "SAT" in str(excinfo.value)
+    assert "rho_A" in str(excinfo.value)
+
+
+def test_plsc_raises_on_exactly_zero_rho_a(monkeypatch):
+    monkeypatch.setattr("openpls.plsc._rho_a_block", lambda *a, **k: 0.0)
+    with pytest.raises(InadmissiblePLScError):
+        _satisfaction_plspm().plsc()
+
+
+def test_plsc_flags_rho_a_above_one(monkeypatch):
+    """rho_A > 1 is usable (positive) but out of bounds, so it is reported as
+    a non-fatal admissibility issue rather than raised."""
+    monkeypatch.setattr("openpls.plsc._rho_a_block", lambda *a, **k: 1.5)
+    report = _satisfaction_plspm().plsc().admissibility()
+    assert report.admissible is False
+    assert any("rho_A" in msg and "> 1" in msg for msg in report.issues)
+
+
+def test_plsc_flags_inflated_correlations_when_rho_a_tiny(monkeypatch):
+    """A tiny rho_A inflates the disattenuated construct correlations past 1
+    and can break positive-definiteness; both are flagged, estimates still
+    returned."""
+    monkeypatch.setattr("openpls.plsc._rho_a_block", lambda *a, **k: 0.3)
+    report = _satisfaction_plspm().plsc().admissibility()
+    assert report.admissible is False
+    assert any(">= 1" in msg or "positive definite" in msg for msg in report.issues)
+
+
+def test_plsc_admissibility_is_exported_from_package():
+    import openpls
+
+    assert openpls.InadmissiblePLScError is InadmissiblePLScError
+    assert openpls.PLScAdmissibility is PLScAdmissibility
