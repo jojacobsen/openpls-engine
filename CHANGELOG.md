@@ -9,6 +9,34 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [1.14.0] - unreleased
+
+The **overall model-fit test** (Bollen-Stine bootstrap) — the inferential fit
+test the composite-PLS tradition omits, and that reviewers in the
+confirmatory/consistent-PLS school expect. It asks whether the *estimated
+(structural)* model's implied indicator correlation matrix is consistent with
+the empirical one, or whether the misfit is larger than sampling fluctuation
+would produce if the model were correct. This complements the descriptive SRMR,
+which cannot say whether a given value is acceptable.
+
+### Added
+- **`Plspm.model_test(n_boot=499, seed=1)`** returns a `ModelTest` reporting
+  three discrepancy measures — `SRMR`, `d_ULS` and the geodesic distance `d_G`
+  — each with its observed value, the 95%/99% quantile of the Bollen-Stine
+  reference distribution, a bootstrap p-value and a `rejected` verdict
+  (observed > HI95). `rejected()` is `True` if any measure rejects.
+  - The model-implied Σ̂ uses the **estimated structural model**
+    (`Σ_η = (I−B)⁻¹(ΓΦΓᵀ + diag ζ)(I−B)⁻ᵀ`), not the saturated measurement
+    model behind the descriptive `srmr()`.
+  - Inadmissible bootstrap resamples (via `PLSc.admissibility()`) are dropped,
+    as in cSEM.
+  - **Validated against cSEM 0.7.1 `testOMF`**: on the ECSI model the observed
+    statistics match to ~4 decimals (SRMR 0.0870, d_ULS 2.86, d_G 1.15) and the
+    verdict agrees (rejected).
+  - Phase 1 covers common-factor (reflective / PLSc) models; composite/CCA
+    models follow once `construct_type` lands.
+- `ModelTest` and `ModelTestMeasure` are exported from the package top level.
+
 ## [1.13.0] - 2026-10-23
 
 PLSc (consistent PLS) now validates its own solution instead of silently

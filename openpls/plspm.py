@@ -39,6 +39,7 @@ from openpls.htmt2 import HTMT2
 from openpls.ipma import IPMA
 from openpls.mga import GroupSpec
 from openpls.micom import MICOM
+from openpls.model_test import ModelTest
 from openpls.nomological import NomologicalValidity
 from openpls.plsc import PLSc
 from openpls.predict import PLSPredict
@@ -596,6 +597,23 @@ class Plspm:
                 self.__outer_model.model(),
             )
         return self.__plsc
+
+    def model_test(self, n_boot: int = 499, seed: int | None = 1) -> ModelTest:
+        """Overall model-fit test via the Bollen-Stine bootstrap.
+
+        The inferential fit test (Dijkstra & Henseler 2015): is the estimated
+        (structural) model's implied indicator correlation matrix consistent
+        with the empirical one, or is the misfit larger than sampling
+        fluctuation would produce if the model were correct? Reports SRMR,
+        d_ULS and the geodesic distance d_G, each against the 95%/99% quantile
+        of the Bollen-Stine reference distribution. Phase 1: common-factor
+        (reflective) models. Validated against cSEM's ``testOMF``.
+
+        Returns:
+            a :class:`.model_test.ModelTest` exposing ``results()``,
+            ``summary()`` and ``rejected()``.
+        """
+        return ModelTest(self.__config, self.__data, self.__scheme, n_boot=n_boot, seed=seed)
 
     def ipma(
         self,
