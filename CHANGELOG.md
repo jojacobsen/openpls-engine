@@ -9,7 +9,7 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
-## [1.14.0] - unreleased
+## [1.14.0] - 2026-10-28
 
 The **overall model-fit test** (Bollen-Stine bootstrap) — the inferential fit
 test the composite-PLS tradition omits, and that reviewers in the
