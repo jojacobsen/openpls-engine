@@ -18,6 +18,7 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
+from openpls.model_test import ModelTest, ModelTestMeasure
 from openpls.plsc import InadmissiblePLScError, PLScAdmissibility
 from openpls.plspm import Plspm
 
@@ -28,4 +29,10 @@ try:
 except PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 
-__all__ = ["Plspm", "InadmissiblePLScError", "PLScAdmissibility"]
+__all__ = [
+    "Plspm",
+    "InadmissiblePLScError",
+    "PLScAdmissibility",
+    "ModelTest",
+    "ModelTestMeasure",
+]
