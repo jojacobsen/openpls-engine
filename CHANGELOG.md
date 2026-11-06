@@ -9,6 +9,29 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [1.14.1] - unreleased
+
+Robustness fixes for crashes seen on real user data (no API or behaviour
+changes for well-formed inputs).
+
+### Fixed
+- **Reliability no longer crashes on a zero-variance indicator.** A constant
+  item (or a block that becomes constant after its own missing rows are
+  dropped) divided by a zero standard deviation, leaving NaN that the
+  unidimensionality PCA rejected with `Input X contains NaN`. The PCA input is
+  now sanitized (a zero-variance item contributes a zero column), so the
+  remaining blocks' metrics are computed instead of the whole run failing.
+- **Mean imputation no longer asserts.** `util.impute` carried a
+  mean-preservation `assert` with a 1e-9 tolerance that fired on floating-point
+  noise and on a fully-missing column (whose mean is NaN), crashing the compute.
+  The assert was redundant (mean-filling is mean-preserving by construction) and
+  has been removed; a fully-missing column is left as zeros.
+- **Sign correction no longer raises "matrices are not aligned".** The outer
+  sign flip used a positional matrix dot that failed when the score columns and
+  the sign index were in a different order. It now applies the per-LV sign by
+  column-wise scaling aligned on LV name, which is mathematically identical to
+  the old diagonal-matrix dot but order-independent.
+
 ## [1.14.0] - 2026-10-28
 
 The **overall model-fit test** (Bollen-Stine bootstrap) — the inferential fit
