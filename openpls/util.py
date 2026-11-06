@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import collections as c
-import math
 
 import numpy as np
 import pandas as pd
@@ -64,11 +63,17 @@ def sort_cols(data: pd.DataFrame) -> pd.DataFrame:
 
 def impute(data: pd.DataFrame) -> pd.DataFrame:
     """Internal function that imputes missing data using the mean value (only suitable for metric data)."""
-    imputed = pd.DataFrame(0, data.index, data.columns)
+    imputed = pd.DataFrame(0.0, data.index, data.columns)
     for column in list(data):
         average = data[column].mean(skipna=True)
+        # A fully-missing column has no mean to impute with; leave it as-is
+        # (zeros) rather than filling with NaN. Mean-filling is mean-preserving
+        # by construction, so the old sanity assert was redundant and only ever
+        # fired on floating-point noise or this all-NaN edge, crashing real
+        # user computes; it has been removed.
+        if pd.isna(average):
+            continue
         imputed[column] = data[column].fillna(average)
-        assert math.isclose(imputed[column].mean(), average, rel_tol=1e-09, abs_tol=0.0)
     return imputed
 
 

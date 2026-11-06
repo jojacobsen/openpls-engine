@@ -72,6 +72,12 @@ class Reliability:
                 correction = self.__correction
             mvs_for_lvs = util.treat(block) * correction
             pca_input = mvs_for_lvs if mvs_for_lvs.shape[0] > mvs_for_lvs.shape[1] else mvs_for_lvs.transpose()
+            # A constant (zero-variance) indicator divides by a zero standard
+            # deviation in util.treat, leaving NaN/inf that PCA rejects with
+            # "Input X contains NaN". Such an item carries no variance, so a zero
+            # column is the correct representation: it contributes a zero
+            # eigenvalue and leaves the other blocks' metrics intact.
+            pca_input = pca_input.replace([np.inf, -np.inf], np.nan).fillna(0.0)
             pca = PCA()
             pca_scores = pca.fit_transform(pca_input)
             pca_std_dev = np.std(pca_scores, axis=0)

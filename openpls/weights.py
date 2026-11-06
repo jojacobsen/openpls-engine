@@ -73,8 +73,12 @@ class _MetricWeights:
         w_sign = (cor.map(sign) * odm).sum(axis=0).apply(sign)
         if -1 in w_sign.values:
             w_sign = w_sign.apply(lambda x : -1 if x == 0 else x)
-            w_sign_matrix = pd.DataFrame(np.diag(w_sign), index=w_sign.index, columns=w_sign.index)
-            scores = scores.dot(w_sign_matrix)
+            # Flip each LV's sign by column-wise scaling, aligned on LV name.
+            # This equals the old diagonal-matrix dot (scores.dot(diag(w_sign)))
+            # but is order-independent: the positional .dot raised "matrices are
+            # not aligned" whenever the score columns and the sign index were in
+            # a different order.
+            scores = scores.mul(w_sign.reindex(scores.columns), axis=1)
         weights = pd.DataFrame(weights.sum(axis=1), index=self.__mvs, columns=["weight"])
         return self.__data, scores, weights
 
