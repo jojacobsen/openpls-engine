@@ -9,7 +9,7 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
-## [1.14.1] - unreleased
+## [1.14.1] - 2026-11-06
 
 Robustness fixes for crashes seen on real user data (no API or behaviour
 changes for well-formed inputs).
