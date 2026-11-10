@@ -42,7 +42,7 @@ pip install openpls-engine
 Pin a specific version for reproducible analyses:
 
 ```sh
-pip install openpls-engine==1.14.1
+pip install openpls-engine==1.14.2
 ```
 
 Or work from source:

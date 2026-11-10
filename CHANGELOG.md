@@ -9,6 +9,21 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [1.14.2] - 2026-11-10
+
+### Fixed
+- **FIMIX-PLS no longer returns degenerate mixtures.** A finite-mixture
+  likelihood is unbounded: a class that shrinks onto a handful of cases, with
+  its residual variance collapsing toward zero, drives the log-likelihood up
+  and was therefore *selected* by the best-of-restarts rule. On the standard
+  corporate-reputation fixture this produced a ~1.5% micro-class and a
+  (nonsensical) positive log-likelihood (issue #34). Each restart is now
+  checked for degeneracy (a class with fewer effective members than the
+  parameters it estimates, or a residual variance on the floor) and the best
+  **admissible** solution is chosen instead. A new `FIMIX.is_degenerate()`
+  reports when only a degenerate fallback was available, i.e. when the data do
+  not support the requested number of classes.
+
 ## [1.14.1] - 2026-11-06
 
 Robustness fixes for crashes seen on real user data (no API or behaviour

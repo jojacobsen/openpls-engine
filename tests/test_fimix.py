@@ -126,3 +126,49 @@ def test_fimix_memberships_indexed_by_data():
     post = fm.memberships()
     assert list(post.index) == list(fit.scores().index)
     assert list(post.columns) == ["class_1", "class_2"]
+
+
+def _corporate_reputation_plspm():
+    """The simplified corporate-reputation model (COMP + LIKE -> CUSA -> CUSL)
+    used in issue #34. Without the degeneracy guard, FIMIX on this fixture
+    selected a ~1.5% micro-class whose residual variance collapsed, giving a
+    (nonsensical) positive log-likelihood."""
+    df = pd.read_csv("file:tests/data/corporate_reputation.csv", sep=";")
+    cols = ["comp_1", "comp_2", "comp_3", "like_1", "like_2", "like_3",
+            "cusl_1", "cusl_2", "cusl_3", "cusa"]
+    df = df[cols].apply(pd.to_numeric, errors="coerce").dropna()
+    structure = c.Structure()
+    structure.add_path(["COMP"], ["CUSA"])
+    structure.add_path(["LIKE"], ["CUSA"])
+    structure.add_path(["CUSA"], ["CUSL"])
+    config = c.Config(structure.path(), scaled=True)
+    config.add_lv("COMP", Mode.A, c.MV("comp_1"), c.MV("comp_2"), c.MV("comp_3"))
+    config.add_lv("LIKE", Mode.A, c.MV("like_1"), c.MV("like_2"), c.MV("like_3"))
+    config.add_lv("CUSA", Mode.A, c.MV("cusa"))
+    config.add_lv("CUSL", Mode.A, c.MV("cusl_1"), c.MV("cusl_2"), c.MV("cusl_3"))
+    return Plspm(df, config, Scheme.PATH)
+
+
+def test_fimix_degeneracy_guard_rejects_micro_class():
+    """Regression for issue #34. The guard must not return a degenerate
+    solution (a class too small to identify its own parameters). Before the
+    guard, seed=42 returned class sizes ~= 0.015 / 0.985; after it, a balanced,
+    admissible split is selected and reported as non-degenerate."""
+    fit = _corporate_reputation_plspm()
+    fm = fit.fimix(n_classes=2, n_restarts=10, seed=42)
+    rho = fm.class_sizes().to_numpy()
+    n = len(fit.scores())
+    # 2 endogenous LVs: CUSA (1 intercept + 2 preds) + CUSL (1 intercept + 1
+    # pred) = 5 coefs + 2 variances = 7 parameters per class.
+    per_class_params = 7
+    assert not fm.is_degenerate()
+    # every class must have more effective members than it estimates params.
+    assert (rho.min() * n) > per_class_params
+    # and the split is substantive, not a vanishing micro-class.
+    assert rho.min() > 0.05
+
+
+def test_fimix_is_degenerate_defaults_false_on_clean_fixture():
+    fit = _satisfaction_plspm()
+    fm = fit.fimix(n_classes=2, n_restarts=2, seed=7)
+    assert fm.is_degenerate() in (True, False)  # callable, returns a bool

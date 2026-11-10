@@ -10,8 +10,8 @@ authors:
 repository-code: "https://github.com/jojacobsen/openpls-engine"
 url: "https://openpls.app/engine"
 license: GPL-3.0-or-later
-version: 1.14.1
-date-released: 2026-11-06
+version: 1.14.2
+date-released: 2026-11-10
 keywords:
   - PLS-SEM
   - Partial Least Squares

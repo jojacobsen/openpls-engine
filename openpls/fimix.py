@@ -46,6 +46,13 @@ import pandas as pd
 
 _LOG2PI = math.log(2.0 * math.pi)
 
+# Lower bound on a class-specific residual variance. A finite-mixture
+# likelihood is unbounded: a component whose variance collapses toward zero
+# around a handful of points drives its density (and the log-likelihood) to
+# +infinity. The floor keeps the arithmetic finite; the degeneracy check below
+# then discards such solutions instead of selecting them.
+_VAR_FLOOR = 1e-10
+
 
 def _endogenous_structure(path: pd.DataFrame) -> list[tuple[str, list[str]]]:
     out: list[tuple[str, list[str]]] = []
@@ -169,7 +176,7 @@ class FIMIX:
                     coef = _weighted_ols(X, y, w)
                     resid = y - X @ coef
                     var = float(np.sum(w * resid * resid) / w_sum)
-                    var = max(var, 1e-10)
+                    var = max(var, _VAR_FLOOR)
                     beta_k.append(coef)
                     sig_k.append(var)
                 betas.append(beta_k)
@@ -200,6 +207,19 @@ class FIMIX:
         per_class_params = sum(X.shape[1] for _, _, X, _ in per_lv) + len(per_lv)
         n_params = K * per_class_params + (K - 1)
 
+        # Degeneracy check. A run is degenerate when either (a) its smallest
+        # class has fewer effective members than the parameters that class
+        # estimates (it cannot identify its own regression, it only overfits a
+        # few points), or (b) a residual variance has collapsed onto the floor
+        # (the unbounded-likelihood pathology). Such runs typically carry the
+        # *highest* log-likelihood, so without this flag __ensure_fit would keep
+        # selecting them. See issue #34.
+        smallest_class = float(np.min(rho)) * n
+        min_var = min(float(np.min(s)) for s in sigmas)
+        degenerate = bool(
+            smallest_class < per_class_params or min_var <= _VAR_FLOOR * 100
+        )
+
         return {
             "rho": rho,
             "betas": betas,
@@ -208,19 +228,37 @@ class FIMIX:
             "log_lik": log_lik,
             "n_params": n_params,
             "iter": it + 1,
+            "degenerate": degenerate,
         }
 
     def __ensure_fit(self):
         if self.__results is not None:
             return
-        best: dict | None = None
+        best: dict | None = None  # best log-lik overall (fallback)
+        best_ok: dict | None = None  # best log-lik among non-degenerate runs
         for r in range(self.__n_restarts):
             seed = (self.__seed + r) if self.__seed is not None else None
             res = self.__em_once(seed)
             if best is None or res["log_lik"] > best["log_lik"]:
                 best = res
+            if not res["degenerate"] and (
+                best_ok is None or res["log_lik"] > best_ok["log_lik"]
+            ):
+                best_ok = res
         assert best is not None
-        self.__results = best
+        # Prefer the best admissible (non-degenerate) solution. Only if *every*
+        # restart was degenerate do we fall back to the overall best, keeping
+        # its ``degenerate`` flag so callers can see the fit is not trustworthy
+        # (the data may simply not support this number of classes).
+        self.__results = best_ok if best_ok is not None else best
+
+    def is_degenerate(self) -> bool:
+        """``True`` when no admissible (non-degenerate) solution was found and
+        the returned fit is a fallback: at least one class is too small to
+        identify its own parameters, or a residual variance has collapsed.
+        A trustworthy FIMIX result has this ``False``."""
+        self.__ensure_fit()
+        return bool(self.__results["degenerate"])
 
     def log_likelihood(self) -> float:
         self.__ensure_fit()
