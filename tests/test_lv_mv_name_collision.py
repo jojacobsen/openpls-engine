@@ -52,3 +52,48 @@ def test_single_item_lv_with_matching_indicator_name():
     assert abs(outer.loc["CUSCO", "loading"] - 1.0) < 1e-9
     # The structural path from X to CUSCO is estimated and non-zero.
     assert abs(paths.loc["CUSCO", "X"]) > 0.5
+
+
+def _make_formative_dataset(seed: int = 1, n: int = 150) -> pd.DataFrame:
+    # Two of the three formative indicators relate negatively to the outcome,
+    # so the composite's sign vote is negative and the sign correction runs.
+    rng = np.random.default_rng(seed)
+    latent = rng.normal(size=n)
+    data = pd.DataFrame({f"y{i}": latent + rng.normal(scale=0.7, size=n) for i in (1, 2, 3)})
+    data["CAT1"] = latent + rng.normal(size=n)
+    data["CAT2"] = -0.3 * latent + rng.normal(size=n)
+    data["CAT3"] = -0.3 * latent + rng.normal(size=n)
+    return data
+
+
+def _fit_formative(data: pd.DataFrame, lv: str) -> Plspm:
+    structure = c.Structure()
+    structure.add_path([lv], ["Y"])
+    config = c.Config(structure.path())
+    config.add_lv_with_columns_named("Y", Mode.A, data, "y")
+    config.add_lv(lv, Mode.B, c.MV("CAT1"), c.MV("CAT2"), c.MV("CAT3"))
+    return Plspm(data, config, Scheme.PATH)
+
+
+def test_sign_correction_with_lv_named_like_an_indicator():
+    """A formative LV named like one of its indicators must survive the sign
+    correction (it used to fail with "cannot reindex on an axis with duplicate
+    labels") and give the same estimates as the same LV under another name."""
+    data = _make_formative_dataset()
+
+    clashing = _fit_formative(data, "CAT1")
+    renamed = _fit_formative(data, "Cat")
+
+    np.testing.assert_allclose(
+        clashing.path_coefficients().loc["Y", "CAT1"],
+        renamed.path_coefficients().loc["Y", "Cat"],
+        atol=1e-12,
+    )
+    np.testing.assert_allclose(
+        clashing.outer_model()["weight"].sort_index().to_numpy(),
+        renamed.outer_model()["weight"].sort_index().to_numpy(),
+        atol=1e-12,
+    )
+    np.testing.assert_allclose(
+        clashing.scores()["CAT1"].to_numpy(), renamed.scores()["Cat"].to_numpy(), atol=1e-12
+    )
