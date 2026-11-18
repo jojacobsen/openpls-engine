@@ -64,7 +64,15 @@ class _MetricWeights:
         wf_diag = pd.DataFrame(np.diag(weight_factors), index=weight_factors.index, columns=weight_factors.index)
         weights = self.__weights.dot(wf_diag)
         scores = self.__data.dot(weights)
-        cor = pd.concat([self.__data, scores], axis=1).corr().loc[list(self.__data), list(scores)]
+        # Pearson correlation of every indicator with every score, computed
+        # directly rather than via a name-based concat of the two frames: an
+        # LV named like one of the indicators would otherwise produce
+        # duplicate labels, and the sign flip below fails to reindex them.
+        data_c = self.__data - self.__data.mean()
+        scores_c = scores - scores.mean()
+        cor = data_c.T.dot(scores_c) / np.outer(
+            np.sqrt((data_c ** 2).sum()), np.sqrt((scores_c ** 2).sum())
+        )
         odm = weights.apply(lambda x: x!= 0).astype(int)
         sign = lambda x : math.copysign(1.0, x)
         # Compute sign first, then mask: math.copysign(1.0, 0) returns +1.0,

@@ -9,6 +9,17 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [1.14.3] - 2026-11-18
+
+### Fixed
+- **Sign correction no longer crashes when a latent variable is named like
+  one of the indicators.** The indicator-score correlations used for the sign
+  correction were computed on a name-based concat of data and scores, so an
+  LV sharing its name with an indicator column produced duplicate labels and
+  `cannot reindex on an axis with duplicate labels` whenever a sign flip was
+  needed (typically with formative blocks). The correlations are now computed
+  directly; estimates are unchanged for all other models.
+
 ## [1.14.2] - 2026-11-10
 
 ### Fixed
