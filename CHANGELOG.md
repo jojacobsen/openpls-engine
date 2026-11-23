@@ -9,6 +9,37 @@ Pre-1.0 releases live on the `0.x` line while the API stabilizes. Tagged
 releases (`vX.Y.Z`) trigger a GitHub Actions workflow that builds the
 package and publishes it to PyPI via OIDC trusted publishing.
 
+## [Unreleased]
+
+### Added
+- **Index of moderated mediation** (Hayes 2015) for a simple mediation
+  `X -> M -> Y` whose first stage (`X -> M`, `stage="first"`) or second stage
+  (`M -> Y`, `stage="second"`) is moderated by `W`:
+  `ModeratedMediation(data, config, predictor, mediator, outcome, moderator, stage)`
+  in the new `openpls.moderated_mediation` module.
+  - `index()` is `a3 · b` (first stage) or `a · b3` (second stage), the slope
+    of the indirect effect in the moderator. `conditional_indirect_effects()`
+    gives the indirect effect at moderator levels in SD units (default
+    -1, 0, +1). `coefficients()` lists `a`, `b` and the interaction
+    coefficient on both scales.
+  - The interaction term is built with two-stage moderation. `a3` / `b3` are
+    reported per unit of the product of the standardized scores (the scale on
+    which the conditional effects are linear in the moderator), not as the
+    path coefficient of the re-standardized interaction LV.
+  - `bootstrap(n_boot=500, alpha=0.05, seed=None, n_jobs=1)` re-runs both
+    moderation stages per resample and returns percentile CIs for the index
+    and every conditional effect; `significant()` tells whether the index CI
+    excludes zero. Results are identical for any `n_jobs` at a fixed seed.
+  - The model must contain the moderator's main effect on the moderated path's
+    target; without it the interaction coefficient is biased, so it is
+    rejected with a `ValueError`.
+  - **Validated against seminr 2.6.0** on the satisfaction model: `a`, `b`,
+    `a3` / `b3` and the index match to 5-6 decimals for both stages, and the
+    bootstrap SE and CI agree within resampling noise (SE 0.0209 vs 0.0221,
+    95% CI [-0.081, 0.001] vs [-0.084, 0.001], 1000 resamples). On simulated
+    null data the bootstrap SE matches the Monte Carlo SD of the index
+    (0.0221 vs 0.0217 over 400 datasets).
+
 ## [1.14.3] - 2026-11-18
 
 ### Fixed
@@ -735,7 +766,7 @@ Initial OpenPLS rebrand of the `plspm-python` 0.5.7 baseline.
 - Forked `plspm-python` 0.5.7 with attribution preserved.
 - `pyproject.toml`, ruff config, GitHub Actions CI matrix (Py 3.10 to 3.13).
 
-[Unreleased]: https://github.com/jojacobsen/openpls-engine/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/jojacobsen/openpls-engine/compare/v1.14.3...HEAD
 [1.11.0]: https://github.com/jojacobsen/openpls-engine/releases/tag/v1.11.0
 [1.4.0]: https://github.com/jojacobsen/openpls-engine/releases/tag/v1.4.0
 [0.7.0a3]: https://github.com/jojacobsen/openpls-engine/releases/tag/v0.7.0a3
